@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="NameAndType">
+  <Class Name="DungeonMaster.Classes.Warrior" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="4.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAUICACAAIKCCAAIIAAgRAVBCAHgSAAlNAAIJAgIQCU=</HashCode>
+      <FileName>Classes\Warrior.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.298" />
+  </Class>
+  <Class Name="DungeonMaster.Classes.Ranger" Collapsed="true">
+    <Position X="0.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Classes\Ranger.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DungeonMaster.Classes.Mage" Collapsed="true">
+    <Position X="0.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Classes\Mage.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DungeonMaster.Equipment.Weapon">
+    <Position X="6.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAACAAAgAAAAEAAAAAAQAAABAAAAAAAAAAABAACA=</HashCode>
+      <FileName>Equipment\Weapon.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="DungeonMaster.Equipment.Chest" Collapsed="true">
+    <Position X="10.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAACAAAgAAAAEAAAAAAQAAABAAAAAAAAAAABAACA=</HashCode>
+      <FileName>Equipment\Chest.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="DungeonMaster.Equipment.Head" Collapsed="true">
+    <Position X="8.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAACAAAgAAAAEAAAAAAQAAABAAAAAAAAAAABAACA=</HashCode>
+      <FileName>Equipment\Head.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="DungeonMaster.Classes.Monster" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="0.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Classes\Monster.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.243" />
+  </Class>
+  <Interface Name="DungeonMaster.Classes.IBaseClass" Collapsed="true">
+    <Position X="2.5" Y="2.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAUICACAAIKCCAAIIAAgRAVBCAFgAAAlFAAIJAgIQCU=</HashCode>
+      <FileName>Classes\IBaseClass.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="DungeonMaster.Equipment.IEquipment" Collapsed="true">
+    <Position X="8.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAACAAAgAAAAAAAAAAAQAAABAAAAAAAAAAABAACA=</HashCode>
+      <FileName>Equipment\IEquipment.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
