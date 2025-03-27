@@ -2,5 +2,5 @@
 Gör en legend för minimapen
 Balansera combat
 Skapa klasser + skills
-Skapa en infosida
+Skapa en infosidas
 
