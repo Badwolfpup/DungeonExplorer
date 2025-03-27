@@ -9,22 +9,24 @@ using DungeonMaster.Classes;
 
 namespace DungeonMaster.Events
 {
-    public interface IEvent: INotifyPropertyChanged
+    public interface IEvent
     {
-        List<KeyValuePair<string, Action>> Options { get; set; }
-        string EventText { get; set; }
+        //List<KeyValuePair<string, Action>> Options { get; set; }
         //IEvent CurrentEvent { get; set; }
         //IBaseClass ChosenClass { get; set; }
-        void RunEvent(int num);
 
-        void TryChoice();
-        
-        void AddNewLine(int x);
 
-        void PrintOptions();
+        //void TryChoice();
 
-        void AddDefaultOptions();
+        //void AddNewLine(int x);
 
+        //void PrintOptions();
+        string Type { get; }
+        List<string> Description { get; set; }
+        void SetUIState();
+        void SetDefaultOptions();
+        void Run();
+        void BeforeNextRoom();
         
     }
 }

@@ -22,11 +22,21 @@ namespace DungeonMaster.Equipment
             Name = name;
         }
 
+
         public Chest(int strength, int dexterity, int intelligence, string name)
         {
             Strength = strength;
             Dexterity = dexterity;
             Intelligence = intelligence;
+            Name = name;
+        }
+
+        public Chest(string name, int strength, int dexterity, int intelligence, int factor)
+        {
+            Random rnd = new Random();
+            Strength = (int)Math.Round((strength * (rnd.Next(1, factor * 2) / 10.0 + 1)));
+            Dexterity = (int)Math.Round((dexterity * (rnd.Next(1, factor * 2) / 10.0 + 1)));
+            Intelligence = (int)Math.Round((intelligence * (rnd.Next(1, factor * 2) / 10.0 + 1  )));
             Name = name;
         }
 
@@ -36,5 +46,7 @@ namespace DungeonMaster.Equipment
         }
 
         public override string ToString() => Name;
+
+
     }
 }

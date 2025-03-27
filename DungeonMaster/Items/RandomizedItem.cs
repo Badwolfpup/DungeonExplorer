@@ -39,16 +39,16 @@ namespace DungeonMaster.Items
         public string Name { get; set; }
         private string Description { get; set; }
         private int TypeOfEffect;
-        private Action<BaseClass> Effect;
+        private Action Effect;
         private int RandomizeTypeOfEffect()
         {
             Random rnd = new Random();
             return rnd.Next(1,101);
         }
 
-        public void Use(BaseClass b)
+        public void Use()
         {
-            Effect(b);
+            Effect?.Invoke();
         }
 
         private void AddName()
@@ -88,36 +88,36 @@ namespace DungeonMaster.Items
             };
         }
 
-        private void PermananetStatBoost(BaseClass b)
+        private void PermananetStatBoost()
         {
             Random rnd = new Random();
             int stat = rnd.Next(1, 4);
             switch (stat)
             {
                 case 1:
-                    int str = rnd.Next((int)((BaseIncreasePerClass(b, "Strength")*(1+b.Level/10.0))));
+                    int str = rnd.Next((int)((BaseIncreasePerClass(HolderClass.Instance.ChosenClass, "Strength")*(1+HolderClass.Instance.ChosenClass.Level/10.0))));
                     Console.WriteLine($"You feel yourself grow stronger. You have gained {str} strength");
                     Name = "Permanent Strength potion";
-                    b.BaseStrength += str;
+                    HolderClass.Instance.ChosenClass.BaseStrength += str;
                     break;
                 case 2:
-                    int dex = rnd.Next((int)((BaseIncreasePerClass(b, "Dexterity") * (1 + b.Level / 10.0))));
+                    int dex = rnd.Next((int)((BaseIncreasePerClass(HolderClass.Instance.ChosenClass, "Dexterity") * (1 + HolderClass.Instance.ChosenClass.Level / 10.0))));
                     Console.WriteLine($"You feel yourself grow more nimble. You have gained {dex} dexterity");
                     Name = "Permanent Dexterity potion";
-                    b.BaseDexterity += dex;
+                    HolderClass.Instance.ChosenClass.BaseDexterity += dex;
                     break;
                 case 3:
-                    int intel = rnd.Next((int)((BaseIncreasePerClass(b, "Intelligence") * (1 + b.Level / 10.0))));
+                    int intel = rnd.Next((int)((BaseIncreasePerClass(HolderClass.Instance.ChosenClass, "Intelligence") * (1 + HolderClass.Instance.ChosenClass.Level / 10.0))));
                     Console.WriteLine($"Suddenly the universe makes more sense. You have gained {intel} intelligence");
                     Name = "Permanent Intelligence potion";
-                    b.BaseIntelligence += intel;
+                    HolderClass.Instance.ChosenClass.BaseIntelligence += intel;
                     break;
             }
         }
 
         private int BaseIncreasePerClass(BaseClass b, string stat)
         {
-            if (b.ClassName == "Warrior")
+            if (HolderClass.Instance.ChosenClass.ClassName == "Warrior")
             {
                 switch (stat)
                 {
@@ -129,7 +129,7 @@ namespace DungeonMaster.Items
                         return 2;
                 }
             }
-            else if (b.ClassName == "Mage")
+            else if (HolderClass.Instance.ChosenClass.ClassName == "Mage")
             {
                 switch (stat)
                 {
@@ -156,50 +156,50 @@ namespace DungeonMaster.Items
             return 0;
         }
 
-        private void DamageToMonsters(BaseClass b)
+        private void DamageToMonsters()
         {
             Random rnd = new Random();
-            int damage = (int)(b.MaxHealth * (rnd.Next(10 - 26) / 100.0));
-            b.Health -= damage;
+            int damage = (int)(HolderClass.Instance.ChosenClass.MaxHealth * (rnd.Next(10 - 26) / 100.0));
+            HolderClass.Instance.ChosenClass.Health -= damage;
             Console.WriteLine($"You throw the grenade and it explodes in a shower of sparks and smoke. The monsters are confused and take {damage} damage");
-            Console.WriteLine($"The {b.Name} has {b.Health} hp left");
+            Console.WriteLine($"The {HolderClass.Instance.ChosenClass.Name} has {HolderClass.Instance.ChosenClass.Health} hp left");
         }
 
-        private void AddManaPoints(BaseClass b)
+        private void AddManaPoints()
         {
             Console.WriteLine("You drink the potion and feel your mana replenish");
-            b.Mana += b.Mana + (b.MaxMana / 4) < b.MaxMana ? b.MaxMana / 4 : b.MaxMana ;
+            HolderClass.Instance.ChosenClass.Mana += HolderClass.Instance.ChosenClass.Mana + (HolderClass.Instance.ChosenClass.MaxMana / 4) < HolderClass.Instance.ChosenClass.MaxMana ? HolderClass.Instance.ChosenClass.MaxMana / 4 : HolderClass.Instance.ChosenClass.MaxMana ;
         }
 
-        private void AddHealthPoints(BaseClass b)
+        private void AddHealthPoints()
         {
             Console.WriteLine("You drink the potion and feel your health replenish");
-            b.Health += b.Health + (b.MaxHealth / 4) < b.MaxHealth ? b.MaxHealth / 4 : b.MaxHealth;
+            HolderClass.Instance.ChosenClass.Health += HolderClass.Instance.ChosenClass.Health + (HolderClass.Instance.ChosenClass.MaxHealth / 4) < HolderClass.Instance.ChosenClass.MaxHealth ? HolderClass.Instance.ChosenClass.MaxHealth / 4 : HolderClass.Instance.ChosenClass.MaxHealth;
         }
 
-        private void TemporaryStatBoost(BaseClass b)
+        private void TemporaryStatBoost()
         {
             Random rnd = new Random();
             int stat = rnd.Next(1, 4);
             switch (stat)
             {
                 case 1:
-                    int str = rnd.Next((int)((BaseIncreasePerClass(b, "Strength") * (1 + b.Level / 10.0)))) * 2;
+                    int str = rnd.Next((int)((BaseIncreasePerClass(HolderClass.Instance.ChosenClass, "Strength") * (1 + HolderClass.Instance.ChosenClass.Level / 10.0)))) * 2;
                     Console.WriteLine($"You feel yourself grow stronger. You have gained {str} strength. You can feel it's only a temporary boost though");
                     Name = "Temporary Strength potion";
-                    b.BaseStrength += str;
+                    HolderClass.Instance.ChosenClass.BaseStrength += str;
                     break;
                 case 2:
-                    int dex = rnd.Next((int)((BaseIncreasePerClass(b, "Dexterity") * (1 + b.Level / 10.0)))) * 2;
+                    int dex = rnd.Next((int)((BaseIncreasePerClass(HolderClass.Instance.ChosenClass, "Dexterity") * (1 + HolderClass.Instance.ChosenClass.Level / 10.0)))) * 2;
                     Console.WriteLine($"You feel yourself grow more nimble. You have gained {dex} dexterity. You can feel it's only a temporary boost though\"");
                     Name = "Temporary Dexterity potion";
-                    b.BaseDexterity += dex;
+                    HolderClass.Instance.ChosenClass.BaseDexterity += dex;
                     break;
                 case 3:
-                    int intel = rnd.Next((int)((BaseIncreasePerClass(b, "Intelligence") * (1 + b.Level / 10.0)))) * 2;
+                    int intel = rnd.Next((int)((BaseIncreasePerClass(HolderClass.Instance.ChosenClass, "Intelligence") * (1 + HolderClass.Instance.ChosenClass.Level / 10.0)))) * 2;
                     Console.WriteLine($"Suddenly the universe makes more sense. You have gained {intel} intelligence. You can feel it's only a temporary boost though\"");
                     Name = "Temporary Intelligence potion";
-                    b.BaseIntelligence += intel;
+                    HolderClass.Instance.ChosenClass.BaseIntelligence += intel;
                     break;
             }
         }

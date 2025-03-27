@@ -1,182 +1,142 @@
-﻿using DungeonMaster.Equipment;
-using DungeonMaster.Monsters;
+﻿using DungeonMaster.Descriptions;
+using DungeonMaster.Equipment;
+using DungeonMaster.Skills;
+using Newtonsoft.Json.Bson;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Xml.Linq;
 
 namespace DungeonMaster.Classes
 {
-    public class Monster
+    public class Monster : BaseClass
     {
-        public string Name { get; set; }
-        public string MonsterName { get; set; }
-        public int MaxHealth { get; set; }
-        public int Health { get; set; }
-        public int MaxMana { get; set; }
-        public int Mana { get; set; }
-        public int Strength { get; set; }
-        public int Dexterity { get; set; }
-        public int Intelligence { get; set; }
-        public int Crit { get; set; }
-        public int Luck { get; set; }
-        public int Level { get; set; }
-        public int Armor { get; set; }
-        public int Resistance { get; set; }
-        public double PhysicalDamageResist { get; set; }
-        public double MagicalDamageResist { get; set; }
-        private double _modifier;
-        public Monster(string name, string monsterName)
+        public override List<BaseSkill> Skills { get; set; }
+        private int floorlevel;
+        public Monster(string name, string className, int floorlevel) : base(name, className)
         {
-            MonsterName = monsterName;
-            Name = name;           
-            SetModifier();
+            this.floorlevel = floorlevel;
+            GenerateStartingEquipment();
             RollStats();
-            Armor = (int)(Strength * 0.7 + Dexterity * 0.3) + 100;
-            Resistance = (int)(Intelligence * 0.7 + Dexterity * 0.3) + 100;
-            CalculateMaxHealth();
-            CalculateMaxMana();
-            CalculateCrit();
-            CalculateLuck();
-            CalculatePhysicalDamageResist();
-            CalculateMagicalDamageResist();
-
+            LoadSkills();
+            AddNewSkill();
         }
 
-        private void SetModifier()
+        public override double DamageResist => (Strength * 0.7 + Dexterity * 0.3 + 100) / 1000;
+
+        public override void GenerateStartingItems()
         {
-            switch (Name)
-            {
-                case "Goblin":
-                    _modifier = 1.0;
-                    break;
-                case "Orc":
-                    _modifier = 1.5;
-                    break;
-                case "Troll":
-                    _modifier = 2.0;
-                    break;
-                case "Dragon":
-                    _modifier = 3.0;
-                    break;
-                case "Skeleton":
-                    _modifier = 1.2;
-                    break;
-                case "Zombie":
-                    _modifier = 1.3;
-                    break;
-                case "Vampire":
-                    _modifier = 2.5;
-                    break;
-                case "Werewolf":
-                    _modifier = 2.2;
-                    break;
-                case "Ghost":
-                    _modifier = 1.8;
-                    break;
-                case "Lich":
-                    _modifier = 3.5;
-                    break;
-                case "Demon":
-                    _modifier = 3.0;
-                    break;
-                case "Gargoyle":
-                    _modifier = 2.1;
-                    break;
-                case "Golem":
-                    _modifier = 2.8;
-                    break;
-                case "Kraken":
-                    _modifier = 4.0;
-                    break;
-                case "Beholder":
-                    _modifier = 3.7;
-                    break;
-                case "Mimic":
-                    _modifier = 1.6;
-                    break;
-                case "Chimera":
-                    _modifier = 2.9;
-                    break;
-                case "Griffon":
-                    _modifier = 2.7;
-                    break;
-                case "Basilisk":
-                    _modifier = 3.2;
-                    break;
-                case "Harpy":
-                    _modifier = 1.9;
-                    break;
-                default:
-                    _modifier = 1.0;
-                    break;
-            }
-
+            throw new NotImplementedException();
         }
 
-
-        public void CalculateCrit()
+        public override void LevelUp()
         {
-            Crit = 10 + (int)(Dexterity * 0.5);
+            throw new NotImplementedException();
         }
 
-        public void CalculateLuck()
+        public override List<KeyValuePair<string, Action>> PrintSkillList()
         {
-            Luck = 10 + (int)(Dexterity * 0.2) + (int)(Intelligence * 0.2);
+            throw new NotImplementedException();
         }
 
-        public void CalculateMaxHealth()
-        {
-            MaxHealth = 30 + Strength * 5;
-            Health = MaxHealth;
-        }
-
-        public void CalculateMaxMana()
-        {
-            MaxMana = 50 + Intelligence * 10;
-            Mana = MaxMana;
-        }
-
-        public void CalculatePhysicalDamageResist()
-        {
-            PhysicalDamageResist = Armor < 800 ? Armor / 1000.0 : 0.8;
-        }
-
-        public void CalculateMagicalDamageResist()
-        {
-            MagicalDamageResist = Resistance < 800 ? Resistance / 1000.0 : 0.8;
-        }
-
-        public void RollStats()
+        public override void RollStats()
         {
             Random rnd = new Random();
-            Strength = (int)(rnd.Next(5, 11) * _modifier);
-            Dexterity = (int)(rnd.Next(5, 11) * _modifier);
-            Intelligence = (int)(rnd.Next(5, 11) * _modifier);
+            Level = floorlevel + rnd.Next(1,3);
+            BaseStrength = rnd.Next(10, 21) * Level;
+            BaseDexterity = rnd.Next(7, 16) * Level;
+            BaseIntelligence = rnd.Next(5, 14) * Level;
+            //Health = MaxHealth;
+            Health = 100;
+            Mana = MaxMana;
+            
         }
 
-        public string Skill1()
+        public void GenerateStartingEquipment()
         {
-            throw new NotImplementedException();
+            Equipment = new List<IEquipment>()
+            {
+                new Weapon("Wooden sword"),
+                new Head("Paper helmet"),
+                new Chest("Grass breastplate")
+            };
+
         }
 
-        public string Skill2()
+        private void LoadSkills()
         {
-            throw new NotImplementedException();
+            Random rnd = new Random();
+            Skills = new List<BaseSkill>();
+            var folders = Directory.GetDirectories(Path.GetFullPath(@"..\..\..\Skills"));
+            string path = Path.GetFullPath(folders[rnd.Next(folders.Length)]);
+            path = Path.GetFullPath(@"..\..\..\Skills\Melee");
+            if (Directory.Exists(path))
+            {
+                Directory.GetFiles(path).ToList().ForEach(x =>
+                {
+                    string name = Path.GetFileNameWithoutExtension(x);
+                    Type type = Type.GetType("DungeonMaster.Skills.Melee." + name);
+                    var skill = (BaseSkill)Activator.CreateInstance(type);
+                    if (skill != null)
+                    {
+                        Skills.Add(skill);
+                    }
+
+                });
+            }
         }
 
-        public string Skill3()
+        public void UseAbility(BaseClass player)
         {
-            throw new NotImplementedException();
+            if (Skills.Count > 1)
+            {
+                Random rnd = new Random();
+                Skills[rnd.Next(Skills.Count)].MonsterUseSkill();
+            } else { Skills[0].MonsterUseSkill(); }
         }
 
-        public string Skill4()
+        public override void Attack(BaseClass player)
         {
-            throw new NotImplementedException();
+            Random rnd = new Random();
+            double x = rnd.Next(30);
+            double variance = 1.0 + (x / 100);
+
+            int damage = (int)Math.Round((5 + Strength * StrModifier) / 2 * DamageDoneModifier * variance * (1 - player.DamageResist) * player.DamageTakenModifier);
+            player.Health -= (int)damage;
+            var Monster = HolderClass.Instance.Monster;
+            PrintUI.SplitLog($"The monster swings it's weapon {(Monster.Health > 0 ? $"It deals {damage} damage. You have {player.Health} hp left" : $"It deals {damage} damage. You havw died")}");
+
         }
 
-        public List<KeyValuePair<string, Action>> SkillList()
+        private Action GetSkill()
+        {
+            Random rnd = new Random();
+            int skill = rnd.Next(0, Skills.Count);
+            return Skills[skill].UseSkill;
+        }
+
+        private void AddNewSkill()
+        {
+            if (SkillList.Count < Skills.Count)
+            {
+                bool foundskill = false;
+                Action newskill = null;
+                do
+                {
+                    if (SkillList.Count == 4) break;
+                    newskill = GetSkill();
+                    if (!SkillList.Any(x => x.Key.Contains(newskill.Method.Name)))
+                    {
+                        foundskill = true;
+                    }
+                } while (!foundskill);
+                if (newskill != null) SkillList.Add(new KeyValuePair<string, Action>($"{SkillList.Count + 1}. {newskill.Method.DeclaringType.Name} ", newskill));
+            }
+        }
+
+        public override List<string> PrintStats()
         {
             throw new NotImplementedException();
         }

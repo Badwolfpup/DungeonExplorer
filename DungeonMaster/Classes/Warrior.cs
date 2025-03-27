@@ -1,9 +1,14 @@
-﻿using DungeonMaster.Equipment;
+﻿using DungeonMaster.Descriptions;
+using DungeonMaster.Equipment;
+using DungeonMaster.Skills;
+using DungeonMaster.Skills.Melee;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -12,15 +17,82 @@ namespace DungeonMaster.Classes
 {
     public class Warrior : BaseClass
     {
-        #region properties
 
+        public override List<BaseSkill> Skills { get; set; }
+        public override double DamageResist => (Strength * 0.7 + Dexterity * 0.3 + 100) / 1000;
 
-        #endregion
-
+        
         public Warrior(string name, string classname) : base(name, classname)
         {
             GenerateStartingEquipment();
             GenerateStartingItems();
+            LoadSkills();
+            AddNewSkill();
+
+        }
+
+
+        private void LoadSkills()
+        {
+            Skills = new List<BaseSkill>();
+            string path = Path.GetFullPath(@"..\..\..\Skills\Melee");
+            if (Directory.Exists(path))
+            {
+                Directory.GetFiles(path).ToList().ForEach(x =>
+                {
+                    string name = Path.GetFileNameWithoutExtension(x);
+                    Type type = Type.GetType("DungeonMaster.Skills.Melee." + name);
+                    var skill = (BaseSkill)Activator.CreateInstance(type);
+                    if (skill != null)
+                    {
+                        Skills.Add(skill);
+                    }
+
+                });
+            }
+        }
+
+
+
+        private Action GetSkill()
+        {
+            Random rnd = new Random();
+            int skill = rnd.Next(0, Skills.Count);
+            return Skills[skill].UseSkill;
+        }
+
+        private void AddNewSkill()
+        {
+            if (SkillList.Count < Skills.Count)
+            {
+                bool foundskill = false;
+                Action newskill = null;
+                do
+                {
+                    if (SkillList.Count == 4) break;
+                    newskill = GetSkill();
+                    if (!SkillList.Any(x => x.Key.Contains(newskill.Method.Name)))
+                    {
+                        foundskill = true;
+                    }
+                } while (!foundskill);
+                if (newskill != null) SkillList.Add(new KeyValuePair<string, Action>($"{SkillList.Count + 1}. {newskill.Method.DeclaringType.Name} ",  newskill));
+            }
+        }
+
+        public override List<string> PrintStats()
+        {
+            int str = $"Strength: {Strength}".Length;
+            int dex = $"Dexterity: {Dexterity}".Length;
+            int inte = $"Intelligence: {Intelligence}".Length;
+            return new List<string> {
+                $"Strength: {Strength}",
+                $"Dexterity: {Dexterity}",
+                $"Intelligence: {Intelligence}",
+                $"Crit: {Crit}%",
+                $"Luck: {Luck}",
+                $"Damage resist: {(int)(DamageResist * 100)}%"
+            };
         }
 
         public override void RollStats()
@@ -30,21 +102,15 @@ namespace DungeonMaster.Classes
             BaseStrength = rnd.Next(10, 21);
             BaseDexterity = rnd.Next(7, 16);
             BaseIntelligence = rnd.Next(5, 14);
-            CalculateMaxHealth();
             Health = MaxHealth;
-            CalculateMaxMana();
             Mana = MaxMana;
-            CalculateLuck();
-            CalculateCrit();
             Level = 1;
             Experience = 0;
             Gold = 0;
-            Armor = (int)(Strength * 0.7 + Dexterity * 0.3) + 100;
-            Resistance = (int)(Intelligence * 0.7 + Dexterity * 0.3) + 100;
             SkillList = PrintSkillList();
         }
 
-        public override string LevelUp()
+        public override void LevelUp()
         {
             Random rnd = new Random();
             Level++;
@@ -56,23 +122,14 @@ namespace DungeonMaster.Classes
             BaseDexterity += dexgain;
             BaseIntelligence += intgain;
             int skilluppchance = rnd.Next(100);
-            int skillup = rnd.Next(4);
+            int skillup = rnd.Next(SkillList.Count);
+            if (Level % 5 == 0) AddNewSkill();
             if (skilluppchance > 19) _skillevels[skillup]++;
-            return $"You have leveled up! You are now level {Level}! \n" +
-                $"You gained {strgain} strength, {dexgain} dexterity and {intgain} intelligence \n" +
-                $"{(skilluppchance < 49 ? "You didn't gain any skillevels this time" : $"You leveled up your {SkillList[skillup].Key} skill to level {_skillevels[skillup]}")}";
+            PrintUI.SplitLog($"You have leveled up! You are now level {Level}! You gained {strgain} strength, {dexgain} dexterity and {intgain} intelligence " +
+                $"{(skilluppchance < 49 ? "You didn't gain any skillevels this time" : $"You leveled up your {SkillList[skillup].Key} skill to level {_skillevels[skillup]}")}");
         }
 
-        public override List<KeyValuePair<string, Action>> PrintSkillList()
-        {
-            return new List<KeyValuePair<string, Action>>()
-            {
-                new KeyValuePair<string, Action>("1. Bash", () => { Skill1(); }),
-                new KeyValuePair<string, Action>("2. Charge", () => { Skill2(); }),
-                new KeyValuePair<string, Action>("3. Slam", () => { Skill3(); }),
-                new KeyValuePair<string, Action>("4. Roar", () => { Skill4(); }),
-            };
-        }
+        public override List<KeyValuePair<string, Action>> PrintSkillList() => SkillList;
 
         public void GenerateStartingEquipment()
         {
@@ -99,36 +156,23 @@ namespace DungeonMaster.Classes
 
 
 
-        public override double Attack()
+        public override void Attack(BaseClass monster)
         {
             Random rnd = new Random();
             double x = rnd.Next(30);
-            double modifier = 1.0 + (x / 100);
-            double damage = (5 + Strength / 2) * modifier;
+            double variance = 1.0 + (x / 100);
+            
+            int damage = (int)Math.Round((5 + Strength * StrModifier) / 2 * DamageDoneModifier * variance * (1 - monster.DamageResist) * monster.DamageTakenModifier);
+            monster.Health -= (int)damage;
             int lifesteal = (int)Math.Round(damage * 0.1);
+            
+            var Monster = HolderClass.Instance.Monster;
+            PrintUI.SplitLog($"You swing your {Equipment.FirstOrDefault(x => x is Weapon).Name} {(Monster.Health > 0 ? $"You deal {damage} damage. The {Monster.Name} has {Monster.Health} hp left" : $"You deal {damage} damage. The {Monster.Name} has died")}");
+            PrintUI.SplitLog($"You heal for {(MaxHealth - Health >= lifesteal ? lifesteal : MaxHealth-Health)} hit points");
             Health = Health + lifesteal <= MaxHealth ? Health + lifesteal : MaxHealth;
-            return damage;
+            HolderClass.Instance.IsPlayerTurn = !HolderClass.Instance.IsPlayerTurn;
         }
 
-        public override string Skill1()
-        {
-            Console.WriteLine("You bash the enemy with the pommel of your weapon");
-            return "You bash the enemy with the pommel of your weapon";
-        }
 
-        public override string Skill2()
-        {
-            return "You charge at the enemy";
-        }
-
-        public override string Skill3()
-        {
-            return "You slam the enemy with your shield";
-        }
-
-        public override string Skill4()
-        {
-            return "You let out a mighty roar, temporarily increasing your strength";
-        }
     }
 }

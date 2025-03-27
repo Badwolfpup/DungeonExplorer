@@ -8,15 +8,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FantasyGameNameGenerator" Version="1.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EditorConfigFiles Remove="C:\Users\h09825\source\repos\ConsoleAdventure\DungeonMaster\Classes\.editorconfig" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="C:\Users\h09825\source\repos\ConsoleAdventure\DungeonMaster\Classes\.editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Skills\Caster\" />
+    <Folder Include="Skills\Ranged\" />
   </ItemGroup>
 
 </Project>

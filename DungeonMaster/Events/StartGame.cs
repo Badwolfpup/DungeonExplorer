@@ -5,10 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DungeonMaster.Classes;
-using FantasyGameNameGenerator;
 using System.Collections.ObjectModel;
 using System.Xml.Linq;
 using System.Text.RegularExpressions;
+using DungeonMaster.Descriptions;
+using DungeonMaster.Other;
+using System.IO.Pipes;
 
 
 namespace DungeonMaster.Events
@@ -23,73 +25,41 @@ namespace DungeonMaster.Events
         }
         #endregion
 
-        public List<KeyValuePair<string, Action>> Options { get; set; }
-
         public IEvent CurrentEvent { get; set; }
-        private string _eventText;
+        public HolderClass HolderClass => HolderClass.Instance;
         private int _rerolls = 10;
-
-        public string EventText
-        {
-            get => _eventText;
-            set
-            {
-                if (_eventText != value)
-                {
-                    _eventText = value;
-                    Console.Write(_eventText);
-                }
-            }
-        }
+        public string Type { get; } = "Start";
         public BaseClass ChosenClass { get; set; }
+        public List<string> Description { get; set; }
 
         public StartGame()
         {
-
-            Options = new List<KeyValuePair<string, Action>>()
+            HolderClass.HasOptionsHeader = true;
+            HolderClass.OptionsHeader = "Welcome to Dungeon Master!";
+            HolderClass.Instance.Options = new List<KeyValuePair<string, Action>>()
             {
-                new KeyValuePair<string, Action>("1. Start new game", () => NameSelection()),
+                new KeyValuePair<string, Action>("1. Start new game", NameSelection),
                 new KeyValuePair<string, Action>("2. Load game", () => { })
             };
-            EventText = "Welcome to the Text Adventure Game!\n";
-            PrintOptions();
-            EventText = "Please select an option: ";
-            TryChoice();
+            HolderClass.ShowOptions = true;
+            PrintUI.Print();
         }
 
-        public void PrintOptions()
-        {
-            foreach (var s in Options)
-            {
-                EventText = s.Key + "\n";
-            }
-        }
 
-        public void TryChoice()
-        {
-            string input = Console.ReadKey(true).KeyChar.ToString();
-            if (Regex.IsMatch(input, $"^[1-{Options.Count}]$")) {
-                EventText = input;
-                Options[int.Parse(input) - 1].Value();
-            } else
-            {
-                TryChoice();
-            }
-        }
 
         private void NameSelection()
         {
-            var name = new NameGenerator();
+            
             var namelist = new List<string>()
             {
-                name.GenerateName(),
-                name.GenerateName(),
-                name.GenerateName(),
-                name.GenerateName(),
-                name.GenerateName(),
-                name.GenerateName()
+                Names.RandomName(),
+                Names.RandomName(),
+                Names.RandomName(),
+                Names.RandomName(),
+                Names.RandomName(),
+                Names.RandomName(),
             };
-            Options = new List<KeyValuePair<string, Action>>()
+            HolderClass.Instance.Options = new List<KeyValuePair<string, Action>>()
             {
                 new KeyValuePair<string, Action>($"1. {namelist[0]}", () => ClassSelection(namelist[0])),
                 new KeyValuePair<string, Action>($"2. {namelist[1]}", () => ClassSelection(namelist[1])),
@@ -98,62 +68,63 @@ namespace DungeonMaster.Events
                 new KeyValuePair<string, Action>($"5. {namelist[4]}", () => ClassSelection(namelist[4])),
                 new KeyValuePair<string, Action>($"6. {namelist[5]}", () => ClassSelection(namelist[5]))
             };
-            AddNewLine(2);
-            PrintOptions();
-            EventText = "Please choose your name: ";
-            TryChoice();
+            //PrintUI.Print();
         }
 
-        public void AddNewLine(int x)
-        {
-            EventText = "";
-            EventText += new string('\n', x);
-        }
 
         private void ClassSelection(string name)
         {
-            Options = new List<KeyValuePair<string, Action>>()
+            HolderClass.Instance.Options = new List<KeyValuePair<string, Action>>()
             {
-                new KeyValuePair<string, Action>("1. Warrior", () => { ChosenClass = new Warrior(name, "Warrior");  RollStats(); }),
+                new KeyValuePair<string, Action>("1. Warrior", () => { HolderClass.Instance.ChosenClass = new Warrior(name, "Warrior"); HolderClass.Instance.ShowStats = true; RollStats(); }),
                 new KeyValuePair<string, Action>("2. Ranger", () => { ChosenClass = new Warrior(name, "Ranger"); }),
                 new KeyValuePair<string, Action>("3. Mage", () => { ChosenClass = new Warrior(name, "Mage"); })
             };
-            AddNewLine(2);
-            PrintOptions();
-            EventText = "Please select your class: ";
-            TryChoice();
+            //PrintUI.Print();
+
         }
 
         private void RollStats()
         {
-            AddNewLine(2);
+
             _rerolls--;
-            ChosenClass.RollStats();
-            //AddNewLine(1);
-            ChosenClass.PrintRolledStats();
-            AddNewLine(1);
-            Options = new List<KeyValuePair<string, Action>>()
+            HolderClass.Instance.ShowRolledStats = true;
+            HolderClass.Instance.ShowStats = false;
+            HolderClass.Instance.ChosenClass.RollStats();
+            //ChosenClass.PrintRolledStats();
+
+            HolderClass.Instance.Options = new List<KeyValuePair<string, Action>>()
             {
-                new KeyValuePair<string, Action>("1. Yes", () => {  }),
-                new KeyValuePair<string, Action>("2. No", () => { RollStats(); }),
+                new KeyValuePair<string, Action>("1. Yes", SetUIState),
+                new KeyValuePair<string, Action>("2. No", RollStats ),
 
             };
-            AddNewLine(1);
-            PrintOptions();
-
-            EventText = _rerolls > 0 ? $"Are you happy with your stats? {_rerolls} rerolls remaining. " : "";
-            TryChoice();
-            AddNewLine(2);
+            if (_rerolls > 0)
+            {
+                HolderClass.OptionsFooter = $"You have {_rerolls} rerolls left. Do you want to keep these stats?";
+                //PrintUI.Print();
+            }
         }
 
-        public void RunEvent(int num)
+        public void SetUIState()
         {
-            Options[num].Value?.Invoke();
+            HolderClass.Instance.SkipNextPrintOut = true;
+            HolderClass.Instance.ShowRolledStats = false;
+            HolderClass.Instance.ShowStats = true;
+            HolderClass.Instance.OptionsFooter = "Please select an option: ";
         }
 
-        public BaseClass GetClass() => ChosenClass;
+        public void SetDefaultOptions()
+        {
+            throw new NotImplementedException();
+        }
 
-        public void AddDefaultOptions()
+        public void Run()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void BeforeNextRoom()
         {
             throw new NotImplementedException();
         }

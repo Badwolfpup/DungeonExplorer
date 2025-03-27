@@ -1,8 +1,12 @@
 ﻿using DungeonMaster.Classes;
+using DungeonMaster.Descriptions;
 using DungeonMaster.Events;
+using DungeonMaster.Other;
 using System;
 using System.Runtime.CompilerServices;
 using System.Security.AccessControl;
+using System.Security.Cryptography.X509Certificates;
+using System.Text.RegularExpressions;
 
 namespace DungeonMaster;
 
@@ -11,25 +15,28 @@ class Program
 
     static void Main(string[] args)
     {
-        BaseClass ChosenClass;
+        Console.OutputEncoding = System.Text.Encoding.UTF8;
         StartGame start = new StartGame();
-        ChosenClass = start.GetClass();
-        if (ChosenClass is Warrior) ChosenClass = (Warrior)ChosenClass;
+        if (HolderClass.Instance.ChosenClass is Warrior) HolderClass.Instance.ChosenClass = (Warrior)HolderClass.Instance.ChosenClass;
         //else if (ChosenClass.ClassName == "Mage") ChosenClass = (Mage)ChosenClass;
         //else if (ChosenClass.ClassName == "Rogue") ChosenClass = (Rogue)ChosenClass;
-        IEvent CurrentEvent;
-        while (ChosenClass != null && ChosenClass.Health > 0)
+        Labyrinth.CreateLabyrinth();
+        Labyrinth.AddOptions();
+        while (HolderClass.Instance.ChosenClass != null && HolderClass.Instance.ChosenClass.Health > 0)
         {
-            Random rnd = new Random();
-            int random = rnd.Next(100);
-            CurrentEvent = random switch
+            SetUIState.DefaultSettings();
+            HolderClass.Instance.IsMoving = true;
+            PrintUI.Print();
+            var coordinates = Labyrinth.GetCoordinates();
+            if (!HolderClass.Instance.Rooms[coordinates.x][coordinates.y].IsFirstRoom && !HolderClass.Instance.Rooms[coordinates.x][coordinates.y].IsSolved)
             {
-                >= 0 => new Battle(ChosenClass),
-            };
+                HolderClass.Instance.Rooms[coordinates.x][coordinates.y].IsFirstRoom = false;
+                HolderClass.Instance.SkipNextPrintOut = true;
+                HolderClass.Instance.IsMoving = false;
+                HolderClass.Instance.Rooms[coordinates.x][coordinates.y].CurrentEvent.Run();
+            }
         }
         Console.WriteLine("Game Over");
 
-
     }
-    
 }

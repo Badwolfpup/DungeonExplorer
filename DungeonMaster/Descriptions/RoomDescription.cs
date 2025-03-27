@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
@@ -10,6 +11,8 @@ namespace DungeonMaster.Descriptions
 
     public static class RoomDescription
     {
+        private static List<string> finalDesc = new List<string>();
+
         public static readonly List<string> RoomTypes = new List<string>
         {
             "A damp, dark corridor with the echo of dripping water.",
@@ -111,16 +114,57 @@ namespace DungeonMaster.Descriptions
 
         private static readonly Random rng = new Random();
 
-        public static string GetRandomRoomDescription()
+        public static void GenerateRandomRoomDescription()
         {
             string type = RoomTypes[rng.Next(RoomTypes.Count)];
             string structure = StructuralDetails[rng.Next(StructuralDetails.Count)];
             string atmosphere = Atmospheres[rng.Next(Atmospheres.Count)];
             string visuals = VisualDetails[rng.Next(VisualDetails.Count)];
+            List<string> desc = $"{type} {structure} {atmosphere} {visuals}".Split(" ").ToList();
+            finalDesc = new List<string>();
+            SplitText(desc);
 
-            // Combine the parts into a full description.
-            return $"{type} {structure} {atmosphere} {visuals}";
         }
+
+        private static void SplitText(List<string> desc)
+        {
+            string currentLine = "";
+            int lineLength = 59;
+            while (desc.Count > 0)
+            {
+                if (desc[0].Length + 1 < lineLength)
+                {
+                    currentLine += $"{(lineLength != 59 ? " " : "")}{desc[0]}";
+                    lineLength -= desc[0].Length + 1;
+                    desc.RemoveAt(0);
+                }
+                else
+                {
+                    finalDesc.Add(currentLine);
+                    currentLine = "";
+                    lineLength = 59;
+                }
+
+            }
+            finalDesc.Add(currentLine);
+        }
+
+        public static void AddEventText(string text, bool lastline)
+        {
+            if (text == null) return;
+            if (lastline) finalDesc.Add("");
+            if (text.Length > 59) SplitText(text.Split(" ").ToList());
+            else finalDesc.Add(text);
+        }
+
+        public static List<string> GetRandomRoomDescription() => finalDesc;
+
+        public static void UpdateMonsterName(string name)
+        {
+            if (name == null) return;
+            finalDesc[finalDesc.Count - 1] = $"You see the corpse of the {name} lying on the floor";
+        }
+
     }
 
 }

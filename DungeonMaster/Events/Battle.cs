@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -11,6 +12,10 @@ using System.Xml.Linq;
 using DungeonMaster.Classes;
 using DungeonMaster.Descriptions;
 using DungeonMaster.Equipment;
+using DungeonMaster.Items;
+using DungeonMaster.Other;
+using DungeonMaster.Skills;
+using DungeonMaster.Skills.Melee;
 
 namespace DungeonMaster.Events
 {
@@ -24,201 +29,254 @@ namespace DungeonMaster.Events
         }
         #endregion
 
-        private string _eventText;
-        public string EventText
+        public BaseClass ChosenClass => HolderClass.Instance.ChosenClass;
+        public BaseClass Monster => HolderClass.Instance.Monster;
+        public string Type { get; } = "Battle";
+        public List<string> Description { get; set; }
+        private bool playersturn = true;
+        public string MonsterText { get; set; }
+
+        public Battle()
         {
-            get => _eventText;
-            set
-            {
-                if (_eventText != value)
-                {
-                    _eventText = value;
-                    Console.Write(_eventText);
-                }
-            }
+            RoomDescription.GenerateRandomRoomDescription();
+            MonsterText = $" You run into a {RandomizeMonster()}";
+            RoomDescription.AddEventText(MonsterText, true);
+            Description = RoomDescription.GetRandomRoomDescription();
         }
-        public BaseClass ChosenClass { get; set; }
-        public List<KeyValuePair<string, Action>> Options { get; set; }
-        private Monster _monster;
-        private List<string> _monsternames = new List<string>()
-        {
-            "Goblin", "Orc", "Troll", "Dragon", "Skeleton", "Zombie", "Vampire", "Werewolf", "Ghost", "Lich", "Demon", "Gargoyle", 
-            "Golem", "Kraken", "Beholder", "Mimic", "Chimera", "Griffon", "Basilisk", "Harpy"        
-        }; 
-        private List<string> _monsteradjectives = new List<string>()
-        {
-            "Angry", "Hungry", "Vicious", "Sneaky", "Sly", "Cunning", "Savage", "Ferocious", "Bloodthirsty", "Ravenous", "Fierce", 
-            "Wild", "Cruel", "Brutal", "Merciless", "Vile", "Evil"
-        };
-        private List<string> _monsterprefix = new List<string>()
-        {
-            "ancient", "dark", "cursed", "blazing", "frozen", "mythic", "shadow", "holy", "demonic", "eldritch", "arcane", "infernal",
-            "vnomous", "enchanted", "swift", "bloodthirsty", "stormforged", "ironclad", "dreadful", "titanic"
-        };
-        private List<string> _monstersuffix = new List<string>()
-        {
-            "of Doom", "of the Abyss", "of Shadows", "of the Fallen", "of Eternal Night", "of the Phoenix", "of the Lich", "of the Wilds",
-            "of Frost", "of Infernos", "of the Arcane", "of Corruption", "of the Void", "of the Storm", "of Reckoning", "of the Titans",
-            "of the Forgotten", "of the Cursed One", "of the Dragon", "of the Undying"
-        };
 
-        public Battle(BaseClass chosenClass)
+        public void Run()
         {
-            ChosenClass = chosenClass;
-            SetDefaultOptions();         
-            EventText = RoomDescription.GetRandomRoomDescription();
-            EventText += $"\nYou run into a {RandomizeMonster()}";           
+            SetUIState();
+            SetDefaultOptions();
+
             StartEvent();
-
         }
 
         private void StartEvent()
         {
-            AddNewLine(2);
-            while (_monster.Health > 0 && ChosenClass.Health > 0)
+
+            while (Monster.Health > 0 && ChosenClass.Health > 0)
             {
-                PrintOptions();                               
-                TryChoice();
-                AddNewLine(1);
+                if (HolderClass.Instance.IsPlayerTurn)
+                {
+                    if (HolderClass.Instance.PlayerUsedAction)
+                    {
+                        ChosenClass.Effects.ForEach(x =>
+                        {
+                            BaseSkill skill = (BaseSkill)x.Target;
+                            if (skill == null) return;
+                            if (skill.RemainingRounds > 0) skill.RemainingRounds--;
+                            else skill.EndSkill();
+                        });
+                        ChosenClass.Effects.RemoveAll(x => (BaseSkill)x.Target is BaseSkill skill && skill.RemainingRounds == 0);
+                        SetDefaultOptions();
+                        PrintUI.Print();
+                    }
+                }
+                else
+                {
+                    Random rnd = new Random();
+                    if (Monster.Health <= 0) continue;
+                    Monster monster = (Monster)Monster;
+                    Action<BaseClass> monsteraction = rnd.Next(1, 101) switch
+                    {
+                        < 70 => monster.Attack,
+                        < 101 => monster.UseAbility,
+                        _ => monster.Attack
+                    };
+
+                    monsteraction?.Invoke(ChosenClass);
+                    HolderClass.Instance.IsPlayerTurn = !HolderClass.Instance.IsPlayerTurn;
+                    PrintUI.SplitLog("");
+                }
+                HolderClass.Instance.Turn++;
             }
-            AddNewLine(1);
-            if (_monster.Health <= 0)
+
+            if (Monster.Health <= 0)
             {
                 WonBattle();
             }
             else
             {
-                EventText += "You have died.";
+                PrintUI.SplitLog("You have died.");
                 
             }
         }
 
+        public void SetUIState()
+        {
+            HolderClass.Instance.ShowLog = true;
+            HolderClass.Instance.ShowMonster = true;
+            HolderClass.Instance.Turn = 1;
+            PrintUI.CombatLog.Clear();
+        }
+
         private void WonBattle()
         {
-            EventText = $"You have defeated the {_monster.Name}";
-            if (_monster.Level < ChosenClass.Level - 3)
+            PrintUI.SplitLog($"You have defeated the {Monster.Name}");
+            if (Monster.Level < ChosenClass.Level - 3)
             {
-                EventText = $"The monster level was too low for you to gain any experience points";
+                PrintUI.SplitLog($"The monster level was too low for you to gain any experience points");
             } else
             {
-                int newxp = _monster.Level <= ChosenClass.Level ? 100 - ((ChosenClass.Level - _monster.Level) * 2) : 10 + ((_monster.Level - ChosenClass.Level) * 3);
+                int newxp = Monster.Level <= ChosenClass.Level ? 100 - ((ChosenClass.Level - Monster.Level) * 2) : 10 + ((Monster.Level - ChosenClass.Level) * 3);
                 ChosenClass.Experience += newxp;
-                EventText = $"You have gained {newxp} experience points. ";
-                AddNewLine(1);
+                PrintUI.SplitLog($"You have gained {newxp} experience points. ");
+
                 if (ChosenClass.Experience >= 100)
                 {                  
-                    EventText = ChosenClass.LevelUp(); 
-                    AddNewLine(1);
+                    ChosenClass.LevelUp(); 
+
                 }
-                EventText = $"You need {100-ChosenClass.Experience} xp to level up";
-                AddNewLine(1);
+                PrintUI.SplitLog($"You need {100 - ChosenClass.Experience} xp to level up");
+ 
+                Loot();
             }
         }
 
-        private void SetDefaultOptions()
+        private void Loot()
         {
-            Options = new List<KeyValuePair<string, Action>>()
+            Labyrinth.SetRoomToSolved();
+            //var coordinates = Labyrinth.GetCoordinates();
+            //HolderClass.Instance.Rooms[coordinates.x][coordinates.y].IsSolved = true;
+            HolderClass.Instance.IsPlayerTurn = true;
+            Random rnd = new Random();
+            int gold = rnd.Next(20, 101);
+            ChosenClass.Gold += gold;
+            PrintUI.SplitLog($"You have found {gold} gold");
+
+            int loot = rnd.Next(1, 101);
+            if (loot < 1)
             {
-                new KeyValuePair<string, Action>("1. Attack", () => Attack()),
-                new KeyValuePair<string, Action>("2. Use ability", () => UseAbility()),
-                new KeyValuePair<string, Action>("3. Use item", () => UseItem()),
-                new KeyValuePair<string, Action>("4. Run away", () => RunAway())
-            };
-            DefaultOptions.AddCharacterOptions(Options, ChosenClass);
-            AddNewLine(2);
+                RandomizedItem item = new RandomizedItem();
+                ChosenClass.Bag.Add(item);
+                PrintUI.SplitLog($"You have found {(Regex.IsMatch(item.Name[0].ToString(), @"^[aeiouAEIOU]") ? "an" : "a")} {item.Name}");
+                SkipPrintOut();
+            }
+            else if (loot < 170)
+            {
+                IEquipment looteditem = GenerateEquipment.RandomEquipment();
+                //switch (rnd.Next(1, 4))
+                //{
+                //    case 1:
+                //        looteditem = GenerateEquipment.Chest(ChosenClass.ClassName, ChosenClass.Level);
+                //        break;
+                //    case 2:
+                //        looteditem = GenerateEquipment.Head(ChosenClass.ClassName, ChosenClass.Level);
+                //        break;
+                //    case 3:
+                //        looteditem = GenerateEquipment.Weapon(ChosenClass.ClassName, ChosenClass.Level);
+                //        break;
+                //    default:
+                //        looteditem = new Weapon("Wooden sword");
+                //        break;
+                //}
+                PrintUI.SplitLog($"You have found a new {looteditem.GetType().Name}");
+                PrintUI.SplitLog($"It has {looteditem.Strength} strength, {looteditem.Dexterity} dexterity and {looteditem.Intelligence} intelligence");
+                var currentitem = ChosenClass.Equipment.FirstOrDefault(x => x.GetType() == looteditem.GetType());
+                PrintUI.SplitLog($"You would {(looteditem.Strength > currentitem.Strength ? "gain" : "lose")} {(looteditem.Strength - currentitem.Strength > 0 ? looteditem.Strength - currentitem.Strength : currentitem.Strength - looteditem.Strength)} strength");
+                PrintUI.SplitLog($"You would {(looteditem.Dexterity > currentitem.Dexterity ? "gain" : "lose")} {(looteditem.Dexterity - currentitem.Dexterity > 0 ? looteditem.Dexterity - currentitem.Dexterity : currentitem.Dexterity - looteditem.Dexterity)} dexterity");
+                PrintUI.SplitLog($"You would {(looteditem.Intelligence > currentitem.Intelligence ? "gain" : "lose")} {(looteditem.Intelligence - currentitem.Intelligence > 0 ? looteditem.Intelligence - currentitem.Intelligence : currentitem.Intelligence - looteditem.Intelligence)} intelligence");
+                HolderClass.Instance.Options.Clear();
+                HolderClass.Instance.Options.Add(new KeyValuePair<string, Action>($"{HolderClass.Instance.Options.Count + 1}. Yes", () => EquipNewItem(looteditem, currentitem)));
+                HolderClass.Instance.Options.Add(new KeyValuePair<string, Action>($"{HolderClass.Instance.Options.Count + 1}. No", () => SkipPrintOut()));
+                PrintUI.Print();
+                RoomDescription.UpdateMonsterName(HolderClass.Instance.Monster.Name);
+            }
+            BeforeNextRoom();
+
         }
 
-        public void TryChoice()
+        public void BeforeNextRoom()
         {
+            PrintUI.SplitLog("");
+            PrintUI.SplitLog("Press any key to continue...");
+            PrintUI.SplitLog("");
+            PrintUI.Print();
             string input = Console.ReadKey(true).KeyChar.ToString();
-            if (Regex.IsMatch(input, $"^[1-{Options.Count}]$"))
+        }
+
+        private void SkipPrintOut()
+        {
+            HolderClass.Instance.SkipNextPrintOut = true;
+
+        }
+
+        private void EquipNewItem(IEquipment newitem, IEquipment olditem)
+        {
+            ChosenClass.Equipment[ChosenClass.Equipment.IndexOf(olditem)] = newitem;
+            HolderClass.Instance.SkipNextPrintOut = true;
+        }
+
+        public void SetDefaultOptions()
+        { 
+            ChosenClass.IsUsingAbility = false;
+            HolderClass.Instance.Options = new List<KeyValuePair<string, Action>>()
             {
-                EventText = input;
-                AddNewLine(2);
-                Options[int.Parse(input) - 1].Value();
-            }
-            else
-            {
-                TryChoice();
-            }
+                new KeyValuePair<string, Action>("1. Attack", Attack),
+                new KeyValuePair<string, Action>("2. Use ability", UseAbility),
+                new KeyValuePair<string, Action>("3. Use item", UseItem),
+                new KeyValuePair<string, Action>("4. Run away", RunAway)
+            };
         }
 
         private string RandomizeMonster()
         {
             Random r = new Random();
-            string name = _monsternames[r.Next(_monsternames.Count)];
-            string monstername = $"{_monsterprefix[r.Next(_monsterprefix.Count)]} {_monsteradjectives[r.Next(_monsteradjectives.Count)]} {name} {_monstersuffix[r.Next(_monstersuffix.Count)]}";
-            _monster = new Monster(name, monstername);
-            return monstername;
+            string name = MonsterNames.RandomMonsterName();
+            string monstername = MonsterNames.RandomMonsterFullName(name);
+            HolderClass.Instance.Monster = new Monster(name, "", HolderClass.Instance.FloorLevel);
+            HolderClass.Instance.HasMonster = true;
+            return " " + monstername;
         }
 
         private void RunAway()
         {
             Random random = new Random();
-            int escapechange = 30 + ChosenClass.Dexterity - (_monster.Level - ChosenClass.Level > 0 ? _monster.Level - ChosenClass.Level * 10 : 0);
+            int escapechange = 30 + ChosenClass.Dexterity - (Monster.Level - ChosenClass.Level > 0 ? Monster.Level - ChosenClass.Level * 10 : 0);
             if (random.Next(100) < escapechange)
             {
-                EventText = "You have successfully escaped";
-                AddNewLine(1);
-                EventText = "You run away from the monster";
+                PrintUI.SplitLog("You have successfully escaped");
+                PrintUI.SplitLog("You run away from the monster");
             }
             else
             {
-                EventText = "You have failed to escape";
-                AddNewLine(1);
-                EventText = "You stumble and fall to the ground unable to act for a moment";
-                AddNewLine(1);
+                PrintUI.SplitLog("You have failed to escape");
+                PrintUI.SplitLog("You stumble and fall to the ground unable to act for a moment");
                 
             }
         }
 
         private void UseItem()
         {
-            Options = ChosenClass.PrintUseItems();
-            Options.Add(new KeyValuePair<string, Action>($"{Options.Count + 1}. Go back to previous menu", () => SetDefaultOptions()));
+            //ChosenClass.IsUsingAbility = false;
+            HolderClass.Instance.Options.Clear();
+            ChosenClass.PrintUseItems().ForEach(x => HolderClass.Instance.Options.Add(x));
+            HolderClass.Instance.Options.Add(new KeyValuePair<string, Action>($"{HolderClass.Instance.Options.Count + 1}. Go back to previous menu", () => SetDefaultOptions()));
         }
 
         private void UseAbility()
         {
-            Options = ChosenClass.PrintSkillList();
-            Options.Add(new KeyValuePair<string, Action>($"{Options.Count + 1}. Go back to previous menu", () => SetDefaultOptions()));
+            HolderClass.Instance.Options.Clear();
+            ChosenClass.SkillList.ForEach(x =>
+            {
+                BaseSkill temp = x.Value.Target as BaseSkill;
+                //Laddas bara när man väljer use abilirty...
+                x = new KeyValuePair<string, Action>($"{ChosenClass.SkillList.Count}. {x.Value.Target.GetType().Name} " +
+                    $"{(temp.RemainingRounds > 0 ? $"({temp.RemainingRounds} rounds left.)" : "")}",  x.Value);
+                HolderClass.Instance.Options.Add(x);
+
+            });
+            HolderClass.Instance.Options.Add(new KeyValuePair<string, Action>($"{HolderClass.Instance.Options.Count + 1}. Go back to previous menu", () => SetDefaultOptions()));
         }
 
         private void Attack()
         {
-            double damage = Math.Round(ChosenClass.Attack()  * (1.0 - _monster.PhysicalDamageResist));
-            _monster.Health -= (int)damage;  
-            EventText = $"You swing your {ChosenClass.Equipment.FirstOrDefault(x => x is Weapon).Name} {(damage > 0 ? $"You deal {damage} damage. The {_monster.Name} has {_monster.Health} hp left" : $"You deal {damage} damage. The {_monster.Name} has died")}";
-            AddNewLine(1);
+            ChosenClass.IsUsingAbility = false;
+            ChosenClass.Attack(Monster);
         }
 
 
-        public void RunEvent(int num)
-        {
-            Options[num].Value?.Invoke();
-        }
 
-        public void AddNewLine(int x)
-        {
-            EventText = "";
-            EventText += new string('\n', x);
-        }
-
-        public void PrintOptions()
-        {
-            EventText = $"Your health: {ChosenClass.Health}/{ChosenClass.MaxHealth}  Your mana: {ChosenClass.Mana}/{ChosenClass.MaxMana}";
-            AddNewLine(2);
-            foreach (var s in Options)
-            {
-                EventText = s.Key + "\n";
-            }
-            EventText = "Please select an option: ";
-            
-        }
-
-        public void AddDefaultOptions()
-        {
-            Options.Add(new KeyValuePair<string, Action>($"{Options.Count+1}. View character", () => DefaultOptions.AddCharacterOptions(Options, ChosenClass)));
-        }
     }
 }
