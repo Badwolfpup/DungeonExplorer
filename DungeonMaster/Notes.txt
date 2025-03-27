@@ -4,5 +4,3 @@ Balansera combat
 Skapa klasser + skills
 Skapa en infosida
 
-
-Teleport portar inte direkt, efter nästa move
