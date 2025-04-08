@@ -24,13 +24,13 @@ namespace DungeonMaster.Other
                 "Battle" => "X",  // Crossed swords
                 "Boss" => "B",  // Oni face
                 "Merchant" => "M",  // Shopping cart
-                "prisoner" => "P",  // Chains
-                "Eiddle" => "?",  // Question mark
-                "Stairs" => "^",  // Upwards arrow
+                "Prisoner" => "P",  // Chains
+                "Riddle" => "?",  // Question mark
+                "Stairs" => "˅",  // Upwards arrow
                 "Teleport" => "T",  // Lightning bolt
                 "Training" => "+",  // Flexed biceps
-                "Treasure" => "*",  // Money bag
-                _ => "?",   // Unknown event
+                "Treasure" => "$",  // Money bag
+                _ => "˄",   // Starting position
             };
             return icon;
         }
@@ -41,8 +41,16 @@ namespace DungeonMaster.Other
             int random = rnd.Next(100);
             CurrentEvent = random switch
             {
-                >= 50 => new Treasure(),
-                >= 0 => new Treasure(),
+                >= 90 => new Altar(),
+                >= 80 => new TrainingRoom(),
+                >= 70 => new Merchant(),
+                >= 60 => new Prisoner(),
+                >= 50 => new Riddle(),
+                >= 40 => new Treasure(),
+                >= 30 => new Teleport(),
+                >= 0 => new Battle(),
+
+                _  => new Battle(),
             };
         }
     }

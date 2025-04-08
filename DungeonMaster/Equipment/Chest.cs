@@ -34,9 +34,9 @@ namespace DungeonMaster.Equipment
         public Chest(string name, int strength, int dexterity, int intelligence, int factor)
         {
             Random rnd = new Random();
-            Strength = (int)Math.Round((strength * (rnd.Next(1, factor * 2) / 10.0 + 1)));
-            Dexterity = (int)Math.Round((dexterity * (rnd.Next(1, factor * 2) / 10.0 + 1)));
-            Intelligence = (int)Math.Round((intelligence * (rnd.Next(1, factor * 2) / 10.0 + 1  )));
+            Strength = (int)Math.Round((strength * (rnd.Next(1, factor * 2 * (HolderClass.Instance.IsBossFight ? 2 : 1)) / 10.0 + 1)));
+            Dexterity = (int)Math.Round((dexterity * (rnd.Next(1, factor * 2 * (HolderClass.Instance.IsBossFight ? 2 : 1)) / 10.0 + 1)));
+            Intelligence = (int)Math.Round((intelligence * (rnd.Next(1, factor * 2 * (HolderClass.Instance.IsBossFight ? 2 : 1)) / 10.0 + 1  )));
             Name = name;
         }
 

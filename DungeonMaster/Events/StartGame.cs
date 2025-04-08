@@ -39,7 +39,7 @@ namespace DungeonMaster.Events
             HolderClass.Instance.Options = new List<KeyValuePair<string, Action>>()
             {
                 new KeyValuePair<string, Action>("1. Start new game", NameSelection),
-                new KeyValuePair<string, Action>("2. Load game", () => { })
+                new KeyValuePair<string, Action>("2. Load game", HolderClass.Instance.Load)
             };
             HolderClass.ShowOptions = true;
             PrintUI.Print();

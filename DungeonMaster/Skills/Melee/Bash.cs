@@ -29,10 +29,13 @@ namespace DungeonMaster.Skills.Melee
                 return false;
             }
             RemainingRounds = 3;
-            PrintUI.SplitLog("The enemy bashes the pommel of it's weapon in your head. Somethings feels off. You feel your strength draning");
+            PrintUI.SplitLog("The enemy bashes the pommel of it's weapon in your head. Somethings feels off. You feel your strength draining");
             //Monster.Effects.Add(MonsterUseSkill);
             RemainingRounds = 3;
             Player.DamageDoneModifier = 0.75;
+            int damage = 20 + (int)(HolderClass.Instance.Monster.Strength * Player.DamageTakenModifier * Player.AltarDamageTakenModifier * Monster.DamageDoneModifier * Player.DamageResist);
+            Player.Health -= damage;
+            PrintUI.SplitLog($"The {Monster.Name} deal {damage} damage");
             return true;
         }
 
@@ -56,8 +59,8 @@ namespace DungeonMaster.Skills.Melee
             HolderClass.Instance.PlayerUsedAction = true;
 
             PrintUI.SplitLog("You bash the enemy with the pommel of your weapon. It seems to have dazed it. Maybe it won't be as effective murdering you for awhile.");
-            int damage = 20 + HolderClass.Instance.ChosenClass.Strength;
             Monster.DamageDoneModifier = 0.75;
+            int damage = 20 + (int)(HolderClass.Instance.ChosenClass.Strength * Player.DamageDoneModifier * Player.AltarDamageDoneModifier * Monster.DamageTakenModifier * Monster.DamageResist);
             Monster.Health -= damage;
             PrintUI.SplitLog($"You deal {damage} damage");
             if (Monster.Health >0) PrintUI.SplitLog($"The {Monster.Name} has {Monster.Health} hp left");

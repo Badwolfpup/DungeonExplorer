@@ -159,10 +159,32 @@ namespace DungeonMaster.Descriptions
 
         public static List<string> GetRandomRoomDescription() => finalDesc;
 
-        public static void UpdateMonsterName(string name)
+        public static void UpdateMonsterName(string name, string type)
         {
-            if (name == null) return;
-            finalDesc[finalDesc.Count - 1] = $"You see the corpse of the {name} lying on the floor";
+            if (name == null || type == null) return;
+
+            switch (type)
+            {
+                case "Monster": finalDesc[finalDesc.Count - 1] = $"You see the corpse of the {name} lying on the floor"; break;
+                case "Merchant": finalDesc[finalDesc.Count - 1] = $"The merchant is nowhere to be seen"; break;
+            }
+            
+        }
+
+        public static List<string> RoomLegend()
+        {
+            return new List<string> { 
+                "A - Altar",
+                "X - Battle",
+                "B - Boss",
+                "M - Merchant",
+                "P - Prisoner",
+                "? - Riddle",
+                "^ - Stairs",
+                "T - Teleport",
+                "+ - Training",
+                "* - Treasure", 
+            };
         }
 
     }

@@ -33,6 +33,11 @@ namespace DungeonMaster.Events
 
             HolderClass.Instance.ChosenClass.Health -= (int)(HolderClass.Instance.ChosenClass.Health * 0.2);
             while (!RandomLocation()) ;
+            var coord = Labyrinth.GetCoordinates();
+            if (!HolderClass.Instance.Rooms[coord.x][coord.y].IsSolved)
+            {
+                HolderClass.Instance.Rooms[coord.x][coord.y].CurrentEvent.Run();
+            }
         }
 
         private bool RandomLocation()
@@ -41,7 +46,8 @@ namespace DungeonMaster.Events
             int x = rnd.Next(HolderClass.Instance.Rooms.Count);
             int y = rnd.Next(HolderClass.Instance.Rooms[x].Count);
             var coord = Labyrinth.GetCoordinates();
-            if (HolderClass.Instance.Rooms[x][y] == null) return false;
+            if (Labyrinth.CanTeleport[x,y] == false) return false;
+            //if (HolderClass.Instance.Rooms[x][y] == null) return false;
             if (coord.x != x && coord.y != y)
             {
                 Labyrinth.List[x][y] = "\u25CF";
@@ -50,6 +56,8 @@ namespace DungeonMaster.Events
                 Labyrinth.List[coord.x][coord.y] = HolderClass.Instance.Rooms[coord.x][coord.y].Icon;
                 Labyrinth.SetCoordinates(x, y);
                 Labyrinth.LabToList();
+                HolderClass.Instance.HasTeleported = true;
+
                 return true;
             }
             else

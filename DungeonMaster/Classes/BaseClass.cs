@@ -35,20 +35,24 @@ namespace DungeonMaster.Classes
         public int BaseIntelligence { get; set; }
         public int Level { get; set; }
         public int Experience { get; set; }
-        public int Gold { get; set; }
         public abstract double DamageResist { get;}
         public double MaxHealthModifier { get; set; } = 1.0;
         public double MaxManaModifier { get; set; } = 1.0;
         public double StrModifier { get; set; } = 1.0;
         public double DexModifier { get; set; } = 1.0;
-        public double IntrModifier { get; set; } = 1.0;
-        //public abstract double ArmorModifier { get; set; }
+        public double IntModifier { get; set; } = 1.0;
+        public double AltarStrModifier { get; set; } = 1.0;
+        public double AltarDexModifier { get; set; } = 1.0;
+        public double AltarIntModifier { get; set; } = 1.0;
         public double ResModifier { get; set; } = 1.0;
         public double CritModifier { get; set; } = 1.0;
-        public double LuckModifier { get; set; } = 1.0;
+        public double AltarCritModifier { get; set; } = 1.0;
         public double DamageDoneModifier { get; set; } = 1.0;
         public double DamageTakenModifier { get; set; } = 1.0;
+        public double AltarDamageDoneModifier { get; set; } = 1.0;
+        public double AltarDamageTakenModifier { get; set; } = 1.0;
         public bool IsUsingAbility { get; set; }
+        public bool HasDebuffNextBattle { get; set; }
         #endregion
 
         public void AddStartingItems()
@@ -56,14 +60,22 @@ namespace DungeonMaster.Classes
             
         }
 
-        public int Strength => (int)((BaseStrength + Equipment.Sum(x => x.Strength)) * StrModifier);
-        public int Dexterity => (int)((BaseDexterity + Equipment.Sum(x => x.Dexterity)) * DexModifier);
-        public int Intelligence => (int)((BaseIntelligence + Equipment.Sum(x => x.Intelligence)) * IntrModifier);
-        
-        public int Crit => (int)((10 + Dexterity * 0.5) * CritModifier);
+        public void ResetAltarBuffsDebuffs()
+        {
+            AltarStrModifier = 1.0;
+            AltarDexModifier = 1.0;
+            AltarIntModifier = 1.0;
+            AltarCritModifier = 1.0;
+            AltarDamageDoneModifier = 1.0;
+            AltarDamageTakenModifier = 1.0;
+        }
+
+        public int Strength => (int)((BaseStrength + Equipment.Sum(x => x.Strength)) * StrModifier * AltarStrModifier);
+        public int Dexterity => (int)((BaseDexterity + Equipment.Sum(x => x.Dexterity)) * DexModifier * AltarDexModifier);
+        public int Intelligence => (int)((BaseIntelligence + Equipment.Sum(x => x.Intelligence)) * IntModifier * AltarIntModifier);       
+        public int Crit => (int)((10 + Dexterity * 0.5) * CritModifier * AltarCritModifier);
         public int MaxHealth => (int)((50 + Strength * 10) * MaxHealthModifier);
         public int MaxMana => (int)((50 + Intelligence * 10) * MaxManaModifier);
-        public int Luck => (int)((10 + Dexterity * 0.2 + Intelligence * 0.2) * LuckModifier);
 
         public List<string> PrintCharacter()
         {
@@ -72,7 +84,7 @@ namespace DungeonMaster.Classes
                 $" Name: {Name}",
                 $" Class: {ClassName}",
                 $" Level: {Level}",
-                $" XP: {Experience}" +$" Gold: {Gold}",
+                $" XP: {Experience}",
                 $" Health: {Health}/{MaxHealth}",
                 $" Mana: {Mana}/{MaxMana}"
             };
@@ -101,14 +113,8 @@ namespace DungeonMaster.Classes
                 $"Strength: (10-20) {BaseStrength}",
                 $"Dexterity: (7-15) {BaseDexterity}",
                 $"Intelligence: (5-13) {BaseIntelligence}" };
-
-            //for (int i = 0; i < stats.Count; i++)
-            //{
-            //    Console.SetCursorPosition(31, i+1);
-            //    Console.WriteLine(stats[i]);
-            //}
-
         }
+
         public List<string> PrintEquipment()
         {
             List<string> items = new List<string>();

@@ -76,8 +76,7 @@ namespace DungeonMaster.Events
         {
             HolderClass.Instance.SkipNextPrintOut = true;
             Labyrinth.SetRoomToSolved();
-            //var coordinates = Labyrinth.GetCoordinates();
-            //HolderClass.Instance.Rooms[coordinates.x][coordinates.y].IsSolved = true;
+            HolderClass.Instance.Save();
 
 
         }

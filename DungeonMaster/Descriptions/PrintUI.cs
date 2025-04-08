@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -25,8 +26,8 @@ namespace DungeonMaster.Descriptions
         static bool HasPrintedMap = false;
         static bool HasPrintedLog = false;
         static bool HasPrintedMonster = false;
-        static int CursorX { get; set; }
-        static int CursorY { get; set; }
+        public static int CursorX { get; set; }
+        public static int CursorY { get; set; }
         static int Optionscount = 0;
         static int OriginalCount;
         static int PrintedOptions = 0;
@@ -335,13 +336,15 @@ namespace DungeonMaster.Descriptions
             int EndX = 89;
             int EndY = 34;
             desc = Labyrinth.PrintMap();
+            var legend = RoomDescription.RoomLegend();
+            var coord = Labyrinth.StartingCoordinates;
             if (StartY == y && x >= StartX && x < EndX)
             {
-                return ($"\u2584{string.Concat(Enumerable.Repeat("\u2584", 15))}\u2584", true);
+                return ($"{legend[0]}{string.Concat(Enumerable.Repeat(" ", 12 - legend[0].Length))}  \u2584{string.Concat(Enumerable.Repeat("\u2584", 15))}\u2584", true);
             } 
             if (y == EndY && x >= StartX && x < EndX)
             {
-                return ($"\u2580{string.Concat(Enumerable.Repeat("\u2580", 15))}\u2580", true);
+                return ($"{legend[9]}{string.Concat(Enumerable.Repeat(" ", 12 - legend[9].Length))}  \u2580{string.Concat(Enumerable.Repeat("\u2580", 15))}\u2580", true);
             }
             if (x >= StartX && x <= EndX && y > StartY && y < EndY)
             {
@@ -349,7 +352,8 @@ namespace DungeonMaster.Descriptions
                 if (index < desc.Count)
                 {
                     HasPrintedItems = true;
-                    return ($"\u258C{desc[index]}\u2590", true);
+                    
+                    return ($"{legend[index+1]}{string.Concat(Enumerable.Repeat(" ", 12 - legend[index+1].Length))}  \u258C{desc[index]}\u2590", true);
 
                 }
             }

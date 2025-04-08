@@ -90,7 +90,6 @@ namespace DungeonMaster.Classes
                 $"Dexterity: {Dexterity}",
                 $"Intelligence: {Intelligence}",
                 $"Crit: {Crit}%",
-                $"Luck: {Luck}",
                 $"Damage resist: {(int)(DamageResist * 100)}%"
             };
         }
@@ -106,7 +105,6 @@ namespace DungeonMaster.Classes
             Mana = MaxMana;
             Level = 1;
             Experience = 0;
-            Gold = 0;
             SkillList = PrintSkillList();
         }
 
@@ -162,7 +160,7 @@ namespace DungeonMaster.Classes
             double x = rnd.Next(30);
             double variance = 1.0 + (x / 100);
             
-            int damage = (int)Math.Round((5 + Strength * StrModifier) / 2 * DamageDoneModifier * variance * (1 - monster.DamageResist) * monster.DamageTakenModifier);
+            int damage = (int)Math.Round((5 + Strength * StrModifier) / 2 * DamageDoneModifier * AltarDamageDoneModifier * variance * (1 - monster.DamageResist) * monster.DamageTakenModifier);
             monster.Health -= (int)damage;
             int lifesteal = (int)Math.Round(damage * 0.1);
             

@@ -63,7 +63,7 @@ namespace DungeonMaster.Events
 
         private void GetTreasure()
         {   
-            if (rnd.Next(100) < 0)
+            if (rnd.Next(100) < 50)
             {
                 int loot = rnd.Next(2);
                 if (loot == 0) NewLoot(GenerateEquipment.RandomEquipment());
@@ -89,6 +89,7 @@ namespace DungeonMaster.Events
         {
             HolderClass.Instance.SkipNextPrintOut = true;
             Labyrinth.SetRoomToSolved();
+            HolderClass.Instance.Save();
         }
 
         private void SmashChest()

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DungeonMaster.Events;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -17,14 +18,18 @@ namespace DungeonMaster.Other
         public static int numberX { get; set; } = 15;
         public static int numberY { get; set; } = 8;
 
+        public static (int x, int y) StartingCoordinates;
         private static List<List<bool>> _map;
+        public static bool[,] CanTeleport = new bool[numberX, numberY];
         public static List<List<string>> List { get; set; }
 
         private static List<string> desc = new List<string>();
 
         public static void CreateLabyrinth()
         {
-            while (!makeLab()) ;
+            HolderClass.Instance.HasStairs = false;
+            while (!makeLab() && !HolderClass.Instance.HasStairs) ;
+            HolderClass.Instance.FloorLevel++;
             LabToList();
         }
 
@@ -71,6 +76,7 @@ namespace DungeonMaster.Other
             _haveChecked = new bool[numberX, numberY];
             if (List != null || _map != null)
             {
+                Array.Clear(CanTeleport, 0, CanTeleport.Length);
                 List.Clear();
                 _map.Clear();
             }
@@ -103,14 +109,37 @@ namespace DungeonMaster.Other
             while (!StartingPoint()) ;
             if (Fibo(_currentX, _currentY) > 25)
             {
+                AddBossAndStairs();
                 return true;
             }
 
             else
             {
+                HolderClass.Instance.HasStairs = false;
                 return false;
             }
 
+        }
+
+        private static void AddBossAndStairs()
+        {
+            Random rnd = new Random();
+            int stairsX = 0;
+            int stairsY = 0;
+            int bossX = 0;
+            int bossY = 0;
+            do
+            {
+               stairsX = rnd.Next(HolderClass.Instance.Rooms.Count);
+               stairsY = rnd.Next(HolderClass.Instance.Rooms[stairsX].Count);
+            } while (!CanTeleport[stairsX, stairsY] || HolderClass.Instance.Rooms[stairsX][stairsY].CurrentEvent is Stairs);
+            do
+            {
+                bossX = rnd.Next(HolderClass.Instance.Rooms.Count);
+                bossY = rnd.Next(HolderClass.Instance.Rooms[bossX].Count);
+            } while (!CanTeleport[bossX, bossY] || HolderClass.Instance.Rooms[bossX][bossY].CurrentEvent is Stairs);
+            HolderClass.Instance.Rooms[stairsX][stairsY].CurrentEvent = new Stairs();
+            HolderClass.Instance.Rooms[bossX][bossY].CurrentEvent = new Boss();
         }
 
         private static bool StartingPoint()
@@ -122,13 +151,14 @@ namespace DungeonMaster.Other
             {
                 List[_currentX][_currentY] = "\u25CF";
                 HolderClass.Instance.Rooms[_currentX][_currentY].IsFirstRoom = true;
+                HolderClass.Instance.Rooms[_currentX][_currentY].CurrentEvent = new Stairs(true);
+                SetRoomToSolved();
                 var description = HolderClass.Instance.Rooms[_currentX][_currentY].CurrentEvent.Description;
                 
-                int index = description.FindIndex(x => x == "");
-                description.RemoveRange(index + 1, description.Count - index - 1);
-                description.Add("You see the opening above you. There is now way up!");
-                //description[description.Count - 1] = "You see the opening above you. There is now way up!";
-
+                //int index = description.FindIndex(x => x == "");
+                //description.RemoveRange(index + 1, description.Count - index - 1);
+                //description.Add("You see the opening above you. There is now way up!");
+                StartingCoordinates = (_currentX, _currentY);
                 return true;
             }
             else
@@ -205,6 +235,8 @@ namespace DungeonMaster.Other
         {
             int RecursiveX = x;
             int RecursiveY = y;
+            CanTeleport[x, y] = true;
+
             if (RecursiveX > 0 && _map[RecursiveX - 1][RecursiveY] == true && _haveChecked[RecursiveX - 1, RecursiveY] == false)
             {
                 _counter++;
@@ -229,7 +261,10 @@ namespace DungeonMaster.Other
                 _haveChecked[RecursiveX, RecursiveY + 1] = true;
                 _counter = Fibo(RecursiveX, RecursiveY + 1);
             }
-
+            if (_counter > 24 && !HolderClass.Instance.HasStairs)
+            {
+                HolderClass.Instance.Rooms[x][y].CurrentEvent = new Stairs();
+            }
             return _counter;
         }
 

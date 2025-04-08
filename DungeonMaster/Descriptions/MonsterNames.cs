@@ -33,11 +33,50 @@ namespace DungeonMaster.Descriptions
 
         }
 
+        public static string RandomBossName()
+        {
+            return bossNames[_random.Next(bossNames.Count)];
+
+        }
+
         public static string RandomMonsterFullName(string name)
         {
             string adjective = _monsteradjectives[_random.Next(_monsteradjectives.Count)];
             string suffix = _monstersuffix[_random.Next(_monstersuffix.Count)];
             return adjective + " " + name + " " + suffix;
         }
+
+        private static List<string> bossNames = new List<string>
+        {
+            "Emperor Mateus",
+            "Cloud of Darkness",
+            "Zeromus",
+            "Exdeath",
+            "Kefka",
+            "Sephiroth",
+            "Dragonlord",
+            "Hargon",
+            "Baramos",
+            "Necrosaro",
+            "Lavos",
+            "Magus",
+            "Mana Beast",
+            "Dark Force",
+            "Neclord",
+            "Tyr",
+            "Dark Dragon",
+            "Tiamat",
+            "Orcus",
+            "Demogorgon",
+            "Vecna",
+            "Strahd von Zarovich",
+            "Acererak",
+            "Lolth",
+            "Asmodeus",
+            "Atma Weapon",
+            "Warmech",
+            "Omega",
+            "Shinryu"
+        };
     }
 }

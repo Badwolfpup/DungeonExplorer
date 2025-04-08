@@ -35,17 +35,26 @@ namespace DungeonMaster.Events
         public List<string> Description { get; set; }
         private bool playersturn = true;
         public string MonsterText { get; set; }
+        public Monster monster { get; set; }
 
         public Battle()
         {
             RoomDescription.GenerateRandomRoomDescription();
-            MonsterText = $" You run into a {RandomizeMonster()}";
-            RoomDescription.AddEventText(MonsterText, true);
+            MonsterText = RandomizeMonster();
+            RoomDescription.AddEventText($" You run into a {MonsterText}", true);
             Description = RoomDescription.GetRandomRoomDescription();
         }
 
+        public Battle(bool boss)
+        {
+
+        }
+
+
+
         public void Run()
         {
+            HolderClass.Instance.Monster = monster;
             SetUIState();
             SetDefaultOptions();
 
@@ -141,10 +150,6 @@ namespace DungeonMaster.Events
             //HolderClass.Instance.Rooms[coordinates.x][coordinates.y].IsSolved = true;
             HolderClass.Instance.IsPlayerTurn = true;
             Random rnd = new Random();
-            int gold = rnd.Next(20, 101);
-            ChosenClass.Gold += gold;
-            PrintUI.SplitLog($"You have found {gold} gold");
-
             int loot = rnd.Next(1, 101);
             if (loot < 1)
             {
@@ -181,10 +186,17 @@ namespace DungeonMaster.Events
                 HolderClass.Instance.Options.Add(new KeyValuePair<string, Action>($"{HolderClass.Instance.Options.Count + 1}. Yes", () => EquipNewItem(looteditem, currentitem)));
                 HolderClass.Instance.Options.Add(new KeyValuePair<string, Action>($"{HolderClass.Instance.Options.Count + 1}. No", () => SkipPrintOut()));
                 PrintUI.Print();
-                RoomDescription.UpdateMonsterName(HolderClass.Instance.Monster.Name);
+                if (!HolderClass.Instance.IsBossFight) UpdateEventText();
             }
             BeforeNextRoom();
 
+        }
+
+        public void UpdateEventText()
+        {
+            int index = Description.IndexOf("");
+            Description.RemoveRange(index + 1, Description.Count - index - 1);
+            Description.Add($"You see the corpse of the {Monster.Name} lying on the floor");
         }
 
         public void BeforeNextRoom()
@@ -193,6 +205,7 @@ namespace DungeonMaster.Events
             PrintUI.SplitLog("Press any key to continue...");
             PrintUI.SplitLog("");
             PrintUI.Print();
+            HolderClass.Instance.ChosenClass.ResetAltarBuffsDebuffs();
             string input = Console.ReadKey(true).KeyChar.ToString();
         }
 
@@ -225,10 +238,12 @@ namespace DungeonMaster.Events
             Random r = new Random();
             string name = MonsterNames.RandomMonsterName();
             string monstername = MonsterNames.RandomMonsterFullName(name);
-            HolderClass.Instance.Monster = new Monster(name, "", HolderClass.Instance.FloorLevel);
+            monster = new Monster(name, "", HolderClass.Instance.FloorLevel);
             HolderClass.Instance.HasMonster = true;
-            return " " + monstername;
+            return monstername;
         }
+
+
 
         private void RunAway()
         {

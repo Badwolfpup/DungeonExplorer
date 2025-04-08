@@ -54,6 +54,13 @@ namespace DungeonMaster.Classes
             
         }
 
+        public void BossStats()
+        {
+            BaseStrength *= 2; 
+            BaseDexterity *= 2;
+            BaseIntelligence *= 2;
+        }
+
         public void GenerateStartingEquipment()
         {
             Equipment = new List<IEquipment>()
@@ -103,7 +110,7 @@ namespace DungeonMaster.Classes
             double x = rnd.Next(30);
             double variance = 1.0 + (x / 100);
 
-            int damage = (int)Math.Round((5 + Strength * StrModifier) / 2 * DamageDoneModifier * variance * (1 - player.DamageResist) * player.DamageTakenModifier);
+            int damage = (int)Math.Round((5 + Strength * StrModifier) / 2 * DamageDoneModifier * variance * (1 - player.DamageResist) * player.DamageTakenModifier * player.AltarDamageTakenModifier);
             player.Health -= (int)damage;
             var Monster = HolderClass.Instance.Monster;
             PrintUI.SplitLog($"The monster swings it's weapon {(Monster.Health > 0 ? $"It deals {damage} damage. You have {player.Health} hp left" : $"It deals {damage} damage. You havw died")}");
