@@ -1,4 +1,5 @@
-﻿using DungeonMaster.Descriptions;
+﻿using DungeonMaster.Classes;
+using DungeonMaster.Descriptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,13 +13,15 @@ namespace DungeonMaster.Events
         Random rnd = new Random();
         int typeofevent;
         string type;
+        string eventtext;
         public Stairs()
         {
             type = "Stairs";
             HolderClass.Instance.HasStairs = true;
             typeofevent = rnd.Next(3);
             RoomDescription.GenerateRandomRoomDescription();
-            RoomDescription.AddEventText($"{EventText()}", true);
+            eventtext = EventText();
+            RoomDescription.AddEventText($"You see a barrier blocking you form going further down. Maybe you need to kill the floor's guardian first", true);
             Description = RoomDescription.GetRandomRoomDescription();
         }
 
@@ -49,23 +52,47 @@ namespace DungeonMaster.Events
         {
             HolderClass.Instance.SkipNextPrintOut = true;
             HolderClass.Instance.IsNewFloor = true;
-            HolderClass.Instance.Save();
+            HolderClass.Instance.FloorLevel++;
         }
 
         public void Run()
         {
+            HolderClass.Instance.HasEnteredStairs = true;
+            UpdateEventText();
             SetUIState();
             SetDefaultOptions();
             PrintUI.Print();
         }
 
+        public void UpdateEventText()
+        {
+            if (HolderClass.Instance.IsBossDead)
+            {
+                int index = Description.IndexOf("");
+                Description.RemoveRange(index + 1, Description.Count - index - 1);
+                Description.Add(eventtext);
+                HolderClass.Instance.SkipNextTryChoice = true;
+                PrintUI.Print();
+            }
+        }
+
         public void SetDefaultOptions()
         {
-            HolderClass.Instance.Options = new List<KeyValuePair<string, Action>>()
+            if (!HolderClass.Instance.IsBossDead)
             {
-                new KeyValuePair<string, Action>($"1. Go down to the next floor", BeforeNextRoom),
-                new KeyValuePair<string, Action>($"2. Continue to explore this floor", () => { HolderClass.Instance.SkipNextPrintOut = true; }),
-            };
+                HolderClass.Instance.Options = new List<KeyValuePair<string, Action>>()
+                {
+                    new KeyValuePair<string, Action>($"1. Continue to explore this floor", () => { HolderClass.Instance.SkipNextPrintOut = true; }),
+                };
+            }
+            else
+            {
+                HolderClass.Instance.Options = new List<KeyValuePair<string, Action>>()
+                {
+                    new KeyValuePair<string, Action>($"1. Go down to the next floor", BeforeNextRoom),
+                    new KeyValuePair<string, Action>($"2. Continue to explore this floor", () => { HolderClass.Instance.SkipNextPrintOut = true; }),
+                };
+            }
         }
 
         public void SetUIState()

@@ -1,4 +1,5 @@
-﻿using DungeonMaster.Descriptions;
+﻿using DungeonMaster.Classes;
+using DungeonMaster.Descriptions;
 using DungeonMaster.Equipment;
 using DungeonMaster.Items;
 using DungeonMaster.Other;
@@ -73,8 +74,9 @@ namespace DungeonMaster.Events
             else
             {
                 Battle battle = new Battle();
-                PrintUI.SplitLog(battle.MonsterText);
-                PrintUI.SplitLog("Press any key to continue...");
+                UpdateEventText(battle.MonsterText);
+                //PrintUI.SplitLog(battle.MonsterText);
+                //PrintUI.SplitLog("Press any key to continue...");
                 HolderClass.Instance.SkipNextTryChoice = true;
                 PrintUI.Print();
                 HolderClass.Instance.SkipNextTryChoice = false;
@@ -85,11 +87,19 @@ namespace DungeonMaster.Events
             
         }
 
+        public void UpdateEventText(string text)
+        {
+            int index = Description.IndexOf("");
+            Description.RemoveRange(index + 1, Description.Count - index - 1);
+            //Description.Add($"As you approach the corner you hear a snarl and see a {text} approach you. Press any key to continue...");
+            Description = RoomDescription.AddSplitText(Description, $"As you approach the corner you hear a snarl and see a {text} approach you. Press any key to continue...");
+
+        }
+
         public void BeforeNextRoom()
         {
             HolderClass.Instance.SkipNextPrintOut = true;
             Labyrinth.SetRoomToSolved();
-            HolderClass.Instance.Save();
         }
 
         private void SmashChest()
@@ -130,6 +140,7 @@ namespace DungeonMaster.Events
             RandomizedItem item = new RandomizedItem();
             HolderClass.Instance.ChosenClass.Bag.Add(item);
             PrintUI.SplitLog($"You have found {(Regex.IsMatch(item.Name[0].ToString(), @"^[aeiouAEIOU]") ? "an" : "a")} {item.Name}");
+            HolderClass.Instance.ChosenClass.FullBag();
             HolderClass.Instance.SkipNextTryChoice = true;
             PrintUI.Print();
             BeforeNextRoom();

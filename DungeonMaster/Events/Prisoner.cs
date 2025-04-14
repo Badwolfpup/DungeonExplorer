@@ -40,7 +40,6 @@ namespace DungeonMaster.Events
         {
             Labyrinth.SetRoomToSolved();
             HolderClass.Instance.SkipNextPrintOut = true;
-            HolderClass.Instance.Save();
         }
 
         public void Run()
@@ -85,6 +84,7 @@ namespace DungeonMaster.Events
             HolderClass.Instance.ChosenClass.Bag.Add(item);
             PrintUI.SplitLog($"The {HolderClass.Instance.Monster.Name} thanks you profusely and offer you an item as a reward.");
             PrintUI.SplitLog($"You have recieved {(Regex.IsMatch(item.Name[0].ToString(), @"^[aeiouAEIOU]") ? "an" : "a")} {item.Name}");
+            HolderClass.Instance.ChosenClass.FullBag();
             HolderClass.Instance.SkipNextTryChoice = true;
             PrintUI.Print();
             //BeforeNextRoom();

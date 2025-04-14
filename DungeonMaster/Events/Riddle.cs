@@ -58,7 +58,6 @@ namespace DungeonMaster.Events
             Labyrinth.SetRoomToSolved();
             HolderClass.Instance.SkipNextPrintOut = true;
             HolderClass.Instance.Options.Add(new KeyValuePair<string, Action>());
-            HolderClass.Instance.Save();
         }
 
         public void Run()

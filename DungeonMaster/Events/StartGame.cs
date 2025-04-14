@@ -25,27 +25,31 @@ namespace DungeonMaster.Events
         }
         #endregion
 
-        public IEvent CurrentEvent { get; set; }
-        public HolderClass HolderClass => HolderClass.Instance;
-        private int _rerolls = 10;
-        public string Type { get; } = "Start";
-        public BaseClass ChosenClass { get; set; }
+        private int _rerolls = 10; //Number of times you are able to reroll stats
+        public string Type { get; } = "Start"; 
         public List<string> Description { get; set; }
 
         public StartGame()
         {
-            HolderClass.HasOptionsHeader = true;
-            HolderClass.OptionsHeader = "Welcome to Dungeon Master!";
+            HolderClass.Instance.HasOptionsHeader = true;
+            HolderClass.Instance.OptionsHeader = "Welcome to Dungeon Master!";
             HolderClass.Instance.Options = new List<KeyValuePair<string, Action>>()
             {
                 new KeyValuePair<string, Action>("1. Start new game", NameSelection),
-                new KeyValuePair<string, Action>("2. Load game", HolderClass.Instance.Load)
+                new KeyValuePair<string, Action>("2. Load game", LoadGame)
             };
-            HolderClass.ShowOptions = true;
+            HolderClass.Instance.ShowOptions = true;
             PrintUI.Print();
         }
 
-
+        private void LoadGame()
+        {
+            if (SaveLoad.Load(out BaseClass b))
+            {
+                HolderClass.Instance.ChosenClass = b;
+                HolderClass.Instance.SkipNextPrintOut = true;
+            }
+        }
 
         private void NameSelection()
         {
@@ -68,7 +72,6 @@ namespace DungeonMaster.Events
                 new KeyValuePair<string, Action>($"5. {namelist[4]}", () => ClassSelection(namelist[4])),
                 new KeyValuePair<string, Action>($"6. {namelist[5]}", () => ClassSelection(namelist[5]))
             };
-            //PrintUI.Print();
         }
 
 
@@ -77,11 +80,9 @@ namespace DungeonMaster.Events
             HolderClass.Instance.Options = new List<KeyValuePair<string, Action>>()
             {
                 new KeyValuePair<string, Action>("1. Warrior", () => { HolderClass.Instance.ChosenClass = new Warrior(name, "Warrior"); HolderClass.Instance.ShowStats = true; RollStats(); }),
-                new KeyValuePair<string, Action>("2. Ranger", () => { ChosenClass = new Warrior(name, "Ranger"); }),
-                new KeyValuePair<string, Action>("3. Mage", () => { ChosenClass = new Warrior(name, "Mage"); })
+                //new KeyValuePair<string, Action>("2. Ranger", () => { HolderClass.Instance.ChosenClass = new Warrior(name, "Ranger"); }),
+                //new KeyValuePair<string, Action>("3. Mage", () => { HolderClass.Instance.ChosenClass = new Warrior(name, "Mage"); })
             };
-            //PrintUI.Print();
-
         }
 
         private void RollStats()
@@ -91,7 +92,6 @@ namespace DungeonMaster.Events
             HolderClass.Instance.ShowRolledStats = true;
             HolderClass.Instance.ShowStats = false;
             HolderClass.Instance.ChosenClass.RollStats();
-            //ChosenClass.PrintRolledStats();
 
             HolderClass.Instance.Options = new List<KeyValuePair<string, Action>>()
             {
@@ -101,8 +101,7 @@ namespace DungeonMaster.Events
             };
             if (_rerolls > 0)
             {
-                HolderClass.OptionsFooter = $"You have {_rerolls} rerolls left. Do you want to keep these stats?";
-                //PrintUI.Print();
+                HolderClass.Instance.OptionsFooter = $"You have {_rerolls} rerolls left. Do you want to keep these stats?";
             }
         }
 

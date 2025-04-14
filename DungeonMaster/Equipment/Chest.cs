@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace DungeonMaster.Equipment
 {
+    /// <summary>
+    /// Creates a new chest piece armor
+    /// </summary>
     public class Chest : IEquipment
     {
         public string Name { get; set; }

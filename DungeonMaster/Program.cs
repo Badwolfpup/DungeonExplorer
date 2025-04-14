@@ -3,6 +3,7 @@ using DungeonMaster.Descriptions;
 using DungeonMaster.Events;
 using DungeonMaster.Other;
 using System;
+using System.ComponentModel.Design;
 using System.Runtime.CompilerServices;
 using System.Security.AccessControl;
 using System.Security.Cryptography.X509Certificates;
@@ -16,6 +17,7 @@ class Program
     static void Main(string[] args)
     {
         Console.OutputEncoding = System.Text.Encoding.UTF8;
+        SaveLoad savefile = new SaveLoad();
         while (true)
         {
             StartGame start = new StartGame();
@@ -34,12 +36,23 @@ class Program
                 var coordinates = Labyrinth.GetCoordinates();
                 if (!HolderClass.Instance.Rooms[coordinates.x][coordinates.y].IsFirstRoom && !HolderClass.Instance.Rooms[coordinates.x][coordinates.y].IsSolved)
                 {
-                    HolderClass.Instance.Rooms[coordinates.x][coordinates.y].IsFirstRoom = false;
-                    HolderClass.Instance.SkipNextPrintOut = true;
-                    HolderClass.Instance.IsMoving = false;
-                    HolderClass.Instance.HasTeleported = false;
-                    HolderClass.Instance.Rooms[coordinates.x][coordinates.y].CurrentEvent.Run();
+                    if (HolderClass.Instance.Rooms[coordinates.x][coordinates.y].CurrentEvent is Boss && !HolderClass.Instance.HasMoved && HolderClass.Instance.HasEnteredBossRoom)
+                    {
+
+                    } else if (HolderClass.Instance.Rooms[coordinates.x][coordinates.y].CurrentEvent is Stairs && !HolderClass.Instance.HasMoved && HolderClass.Instance.HasEnteredStairs)
+                    {
+
+                    }
+                    else
+                    {
+                        HolderClass.Instance.Rooms[coordinates.x][coordinates.y].IsFirstRoom = false;
+                        HolderClass.Instance.SkipNextPrintOut = true;
+                        HolderClass.Instance.IsMoving = false;
+                        HolderClass.Instance.HasTeleported = false;
+                        HolderClass.Instance.Rooms[coordinates.x][coordinates.y].CurrentEvent.Run();
+                    }
                 }
+                savefile.Save();
             }
             HolderClass.Instance.SkipNextPrintOut = false;
             HolderClass.Instance.ShowStats = false;

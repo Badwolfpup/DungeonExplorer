@@ -29,7 +29,6 @@ namespace DungeonMaster.Events
         private List<IEquipment> equipment = new List<IEquipment>();
         private IEquipment currentitem;
         private IEquipment listeditem;
-        private bool hasbought;
 
         private string EventText()
         {
@@ -41,13 +40,9 @@ namespace DungeonMaster.Events
 
         public void BeforeNextRoom()
         {
-            if (hasbought)
-            {
-                Labyrinth.SetRoomToSolved();
-                UpdateEventText();
-            }
+            Labyrinth.SetRoomToSolved();
+            UpdateEventText();
             HolderClass.Instance.SkipNextPrintOut = true;
-            HolderClass.Instance.Save();
         }
 
         public void UpdateEventText()
@@ -104,7 +99,6 @@ namespace DungeonMaster.Events
         {
             HolderClass.Instance.ChosenClass.Equipment[HolderClass.Instance.ChosenClass.Equipment.IndexOf(currentitem)] = listeditem;
             HolderClass.Instance.SkipNextTryChoice = true;
-            hasbought = true;
             PrintUI.Print();
             BeforeNextRoom();
         }
@@ -131,8 +125,8 @@ namespace DungeonMaster.Events
             }
             var addedItem = randomizedItem;
             HolderClass.Instance.ChosenClass.Bag.Add(randomizedItem);
+            HolderClass.Instance.ChosenClass.FullBag();
             items.Remove(randomizedItem);
-            hasbought = true;
             BeforeNextRoom();
         }
 

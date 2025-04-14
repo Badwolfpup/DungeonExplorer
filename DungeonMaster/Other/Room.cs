@@ -39,18 +39,25 @@ namespace DungeonMaster.Other
         {
             Random rnd = new Random();
             int random = rnd.Next(100);
+            //CurrentEvent = random switch
+            //{
+            //    >= 90 => new Altar(),
+            //    >= 80 => new TrainingRoom(),
+            //    >= 70 => new Merchant(),
+            //    >= 60 => new Prisoner(),
+            //    >= 50 => new Riddle(),
+            //    >= 40 => new Treasure(),
+            //    >= 30 => new Teleport(),
+            //    >= 0 => new Battle(),
+
+            //    _  => new Battle(),
+            //};
             CurrentEvent = random switch
             {
-                >= 90 => new Altar(),
-                >= 80 => new TrainingRoom(),
-                >= 70 => new Merchant(),
-                >= 60 => new Prisoner(),
-                >= 50 => new Riddle(),
-                >= 40 => new Treasure(),
-                >= 30 => new Teleport(),
                 >= 0 => new Battle(),
 
-                _  => new Battle(),
+
+                _ => new TrainingRoom(),
             };
         }
     }

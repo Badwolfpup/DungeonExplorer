@@ -10,15 +10,15 @@ namespace DungeonMaster.Skills.Melee
 {
     public class Focus : BaseSkill
     {
-        public override int RemainingRounds { get; set; } = 0;
-        public override int ManaCost { get; set; } = 30;
+        public override int RemainingRounds { get; set; } = 0; //The number of rounds the skill is active for
+        public override int ManaCost { get; set; } = 30; //The mana cost of the skill
 
-        private BaseClass Player => HolderClass.Instance.ChosenClass;
-        private BaseClass Monster => HolderClass.Instance.Monster;
+        private BaseClass Player => HolderClass.Instance.ChosenClass; //Simplify access to the player class
+        private BaseClass Monster => HolderClass.Instance.Monster; //Simplify access to the monster class
 
-        public override void EndSkill() => Player.DamageTakenModifier = 1;
+        public override void EndSkill() => Player.DamageTakenModifier = 1; // Reset the damage taken modifier to 1 when the skill ends
 
-        public override bool MonsterUseSkill()
+        public override bool MonsterUseSkill() // This method is called when the monster uses the skill
         {
             if (RemainingRounds > 0)
             {
@@ -35,7 +35,7 @@ namespace DungeonMaster.Skills.Melee
             return true;
         }
 
-        public override void UseSkill()
+        public override void UseSkill() // This method is called when the player uses the skill
         {
             if (HolderClass.Instance.ChosenClass.Mana < ManaCost)
             {

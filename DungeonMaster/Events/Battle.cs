@@ -29,32 +29,40 @@ namespace DungeonMaster.Events
         }
         #endregion
 
-        public BaseClass ChosenClass => HolderClass.Instance.ChosenClass;
-        public BaseClass Monster => HolderClass.Instance.Monster;
-        public string Type { get; } = "Battle";
-        public List<string> Description { get; set; }
-        private bool playersturn = true;
-        public string MonsterText { get; set; }
-        public Monster monster { get; set; }
+        public BaseClass ChosenClass => HolderClass.Instance.ChosenClass; //Simplifed access to the chosen class
+        public BaseClass Monster => HolderClass.Instance.Monster; //Simplified access to the monster
+        public string Type { get; } = "Battle"; //Event type
+        public List<string> Description { get; set; } //Description of the event
+        private bool hasrunaway; //Used to check if the player has run away from the battle
+        private (int x, int y) coords; //Coordinates of the room
+        public string MonsterText { get; set; } //Text to display the monster name
+        public Monster monster { get; set; } //Monster object hat holds the monster create
 
+        //Constructor for regular battle
         public Battle()
         {
             RoomDescription.GenerateRandomRoomDescription();
             MonsterText = RandomizeMonster();
             RoomDescription.AddEventText($" You run into a {MonsterText}", true);
             Description = RoomDescription.GetRandomRoomDescription();
+            
         }
 
+        //Constructor for boss battle
         public Battle(bool boss)
         {
-
+            RoomDescription.GenerateRandomRoomDescription();
+            RoomDescription.AddEventText($" A powerful aura emanates from {RandomizeBoss()}. He looks at you with a menacing look. He looks like he alot tougher than the other monsters.", true);
+            Description = RoomDescription.GetRandomRoomDescription();
         }
 
 
 
         public void Run()
         {
-            HolderClass.Instance.Monster = monster;
+            coords = Labyrinth.GetCoordinates(); //Get the coordinates of the room
+            HolderClass.Instance.IsBossFight = HolderClass.Instance.Rooms[coords.x][coords.y].CurrentEvent is Boss; //Checks if the current event is a boss
+            HolderClass.Instance.Monster = monster; //Set the monster to the current monster
             SetUIState();
             SetDefaultOptions();
 
@@ -64,12 +72,14 @@ namespace DungeonMaster.Events
         private void StartEvent()
         {
 
-            while (Monster.Health > 0 && ChosenClass.Health > 0)
+            while ((Monster.Health > 0 && ChosenClass.Health > 0) && !hasrunaway) //Contonues the battle until either has died or the player successfully runs away
             {
                 if (HolderClass.Instance.IsPlayerTurn)
                 {
-                    if (HolderClass.Instance.PlayerUsedAction)
+                    if (HolderClass.Instance.PlayerUsedAction) //Iff the player didnt use an action, e.g. opened a menu it will loop back to the player
                     {
+                        HolderClass.Instance.SkipNextTryChoice = false;
+                        //Loops through all active effects and reduces/ends them
                         ChosenClass.Effects.ForEach(x =>
                         {
                             BaseSkill skill = (BaseSkill)x.Target;
@@ -86,7 +96,9 @@ namespace DungeonMaster.Events
                 {
                     Random rnd = new Random();
                     if (Monster.Health <= 0) continue;
-                    Monster monster = (Monster)Monster;
+                    Monster monster = (Monster)Monster; //Cast the monster to an instance of Monster, instead of BaseClass
+
+                    //Randomize the monster's action and saves it in a Action delegate
                     Action<BaseClass> monsteraction = rnd.Next(1, 101) switch
                     {
                         < 70 => monster.Attack,
@@ -94,22 +106,25 @@ namespace DungeonMaster.Events
                         _ => monster.Attack
                     };
 
-                    monsteraction?.Invoke(ChosenClass);
+                    monsteraction?.Invoke(ChosenClass); 
                     HolderClass.Instance.IsPlayerTurn = !HolderClass.Instance.IsPlayerTurn;
                     PrintUI.SplitLog("");
+                    
                 }
                 HolderClass.Instance.Turn++;
             }
-
+            
             if (Monster.Health <= 0)
             {
+                if (HolderClass.Instance.IsBossFight) HolderClass.Instance.IsBossDead = true;
                 WonBattle();
             }
-            else
+            else if (!hasrunaway)
             {
                 PrintUI.SplitLog("You have died.");
                 
             }
+            if (HolderClass.Instance.IsBossFight) hasrunaway = false;
         }
 
         public void SetUIState()
@@ -120,10 +135,11 @@ namespace DungeonMaster.Events
             PrintUI.CombatLog.Clear();
         }
 
+        //Handles xp and loot after the battle
         private void WonBattle()
         {
             PrintUI.SplitLog($"You have defeated the {Monster.Name}");
-            if (Monster.Level < ChosenClass.Level - 3)
+            if (Monster.Level < ChosenClass.Level - 3) //If the monster is too low level, the player will not gain any xp
             {
                 PrintUI.SplitLog($"The monster level was too low for you to gain any experience points");
             } else
@@ -143,39 +159,25 @@ namespace DungeonMaster.Events
             }
         }
 
-        private void Loot()
+        
+        private void Loot() //Randomizes the loot after the battle, either item or equipment
         {
             Labyrinth.SetRoomToSolved();
-            //var coordinates = Labyrinth.GetCoordinates();
-            //HolderClass.Instance.Rooms[coordinates.x][coordinates.y].IsSolved = true;
             HolderClass.Instance.IsPlayerTurn = true;
             Random rnd = new Random();
             int loot = rnd.Next(1, 101);
-            if (loot < 1)
+            if (loot < 50)
             {
                 RandomizedItem item = new RandomizedItem();
-                ChosenClass.Bag.Add(item);
                 PrintUI.SplitLog($"You have found {(Regex.IsMatch(item.Name[0].ToString(), @"^[aeiouAEIOU]") ? "an" : "a")} {item.Name}");
+
+                ChosenClass.Bag.Add(item);
+                ChosenClass.FullBag();
                 SkipPrintOut();
             }
-            else if (loot < 170)
+            else if (loot < 50)
             {
                 IEquipment looteditem = GenerateEquipment.RandomEquipment();
-                //switch (rnd.Next(1, 4))
-                //{
-                //    case 1:
-                //        looteditem = GenerateEquipment.Chest(ChosenClass.ClassName, ChosenClass.Level);
-                //        break;
-                //    case 2:
-                //        looteditem = GenerateEquipment.Head(ChosenClass.ClassName, ChosenClass.Level);
-                //        break;
-                //    case 3:
-                //        looteditem = GenerateEquipment.Weapon(ChosenClass.ClassName, ChosenClass.Level);
-                //        break;
-                //    default:
-                //        looteditem = new Weapon("Wooden sword");
-                //        break;
-                //}
                 PrintUI.SplitLog($"You have found a new {looteditem.GetType().Name}");
                 PrintUI.SplitLog($"It has {looteditem.Strength} strength, {looteditem.Dexterity} dexterity and {looteditem.Intelligence} intelligence");
                 var currentitem = ChosenClass.Equipment.FirstOrDefault(x => x.GetType() == looteditem.GetType());
@@ -196,10 +198,11 @@ namespace DungeonMaster.Events
         {
             int index = Description.IndexOf("");
             Description.RemoveRange(index + 1, Description.Count - index - 1);
-            Description.Add($"You see the corpse of the {Monster.Name} lying on the floor");
-        }
+            if (!hasrunaway) Description.Add($"You see the corpse of the {Monster.Name} lying on the floor");
+            else Description.Add($"The {Monster.Name} is nowhere to be seen");
+        } //Updates the text of the monster after it's been defeated or the player has run away
 
-        public void BeforeNextRoom()
+        public void BeforeNextRoom() //Adds a pause before moving on to the next room
         {
             PrintUI.SplitLog("");
             PrintUI.SplitLog("Press any key to continue...");
@@ -215,7 +218,7 @@ namespace DungeonMaster.Events
 
         }
 
-        private void EquipNewItem(IEquipment newitem, IEquipment olditem)
+        private void EquipNewItem(IEquipment newitem, IEquipment olditem) //Equips the new item. 
         {
             ChosenClass.Equipment[ChosenClass.Equipment.IndexOf(olditem)] = newitem;
             HolderClass.Instance.SkipNextPrintOut = true;
@@ -241,24 +244,48 @@ namespace DungeonMaster.Events
             monster = new Monster(name, "", HolderClass.Instance.FloorLevel);
             HolderClass.Instance.HasMonster = true;
             return monstername;
-        }
+        } //Randomizes the monster name and creates a new monster object
+
+        private string RandomizeBoss()
+        {
+            Random r = new Random();
+            string name = MonsterNames.RandomBossName();
+            monster = new Monster(name, "", HolderClass.Instance.FloorLevel);
+            monster.BossStats();
+            HolderClass.Instance.HasMonster = true;
+            return name;
+        } //Randomizes the boss name and creates a new monster object
 
 
 
-        private void RunAway()
+        private void RunAway() //Handles the run away action
         {
             Random random = new Random();
-            int escapechange = 30 + ChosenClass.Dexterity - (Monster.Level - ChosenClass.Level > 0 ? Monster.Level - ChosenClass.Level * 10 : 0);
+            int escapechange = 30 + ChosenClass.Dexterity - (Monster.Level - ChosenClass.Level > 0 ? Monster.Level - ChosenClass.Level * 10 : 0); //Calculates the chance to escape
+            HolderClass.Instance.SkipNextTryChoice = true;
             if (random.Next(100) < escapechange)
             {
-                PrintUI.SplitLog("You have successfully escaped");
-                PrintUI.SplitLog("You run away from the monster");
+                var coords = Labyrinth.GetCoordinates();    
+                if (!HolderClass.Instance.IsBossFight) 
+                {
+                    PrintUI.SplitLog("You have successfully escaped");
+                    PrintUI.SplitLog("You run away from the monster");
+                    hasrunaway = true;
+                    UpdateEventText(); 
+                    BeforeNextRoom();
+                } else
+                {
+                    PrintUI.SplitLog("You have successfully escaped");
+                    PrintUI.SplitLog("You have a feeling the boss will be waiting for you though");
+                    hasrunaway = true;
+                    BeforeNextRoom();
+                }
             }
             else
             {
                 PrintUI.SplitLog("You have failed to escape");
                 PrintUI.SplitLog("You stumble and fall to the ground unable to act for a moment");
-                
+                HolderClass.Instance.IsPlayerTurn = !HolderClass.Instance.IsPlayerTurn;
             }
         }
 
@@ -266,11 +293,11 @@ namespace DungeonMaster.Events
         {
             //ChosenClass.IsUsingAbility = false;
             HolderClass.Instance.Options.Clear();
-            ChosenClass.PrintUseItems().ForEach(x => HolderClass.Instance.Options.Add(x));
+            ChosenClass.AddItemsAsOptions().ForEach(x => HolderClass.Instance.Options.Add(x));
             HolderClass.Instance.Options.Add(new KeyValuePair<string, Action>($"{HolderClass.Instance.Options.Count + 1}. Go back to previous menu", () => SetDefaultOptions()));
-        }
+        } //Adds the items as options to the options menu
 
-        private void UseAbility()
+        private void UseAbility() //Add the skills as options to the options menu
         {
             HolderClass.Instance.Options.Clear();
             ChosenClass.SkillList.ForEach(x =>
@@ -285,7 +312,7 @@ namespace DungeonMaster.Events
             HolderClass.Instance.Options.Add(new KeyValuePair<string, Action>($"{HolderClass.Instance.Options.Count + 1}. Go back to previous menu", () => SetDefaultOptions()));
         }
 
-        private void Attack()
+        private void Attack() //Calls the attack method of the chosen class
         {
             ChosenClass.IsUsingAbility = false;
             ChosenClass.Attack(Monster);

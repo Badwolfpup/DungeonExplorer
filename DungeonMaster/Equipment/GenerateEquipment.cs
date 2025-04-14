@@ -7,11 +7,14 @@ using System.Threading.Tasks;
 
 namespace DungeonMaster.Equipment
 {
+    /// <summary>
+    /// Randomly generates equipment based on the class and level of the player.
+    /// </summary>
     public static class GenerateEquipment
     {
-        private static List<string> _qualityofequipment = new List<string> { "Copper", "Bronze", "Iron", "Steel", "Cobolt", "Diamond", "Platinum" };
+        private static List<string> _qualityofequipment = new List<string> { "Copper", "Bronze", "Iron", "Steel", "Cobolt", "Diamond", "Platinum" }; //Types of equipment
 
-        public static IEquipment Chest(string chosenclass, int factor)
+        public static IEquipment Chest(string chosenclass, int factor) 
         {
             Random rnd = new Random();
             switch (chosenclass)
@@ -21,9 +24,9 @@ namespace DungeonMaster.Equipment
                 case "Ranger": return new Chest(GenerateName("Chest"), 5, 8, 3, factor);
                 default: return new Chest("Default chest");
             }
-        }
+        } //Creates a new chest piece armor
 
-        public static IEquipment Head(string chosenclass, int factor)
+        public static IEquipment Head(string chosenclass, int factor) 
         {
             Random rnd = new Random();
             switch (chosenclass)
@@ -33,7 +36,7 @@ namespace DungeonMaster.Equipment
                 case "Ranger": return new Head(GenerateName("Head"), 5, 8, 3, factor);
                 default: return new Head("Default head");
             }
-        }
+        }  //Creates a new head piece armor
 
         public static IEquipment Weapon(string chosenclass, int factor)
         {
@@ -45,15 +48,15 @@ namespace DungeonMaster.Equipment
                 case "Ranger": return new Weapon(GenerateName("Weapon"), 5, 8, 3, factor);
                 default: return new Weapon("Default weapon");
             }
-        }
+        } //Creates a new weapon
 
-        private static string GenerateName(string armortype)
+        private static string GenerateName(string armortype) //Generates a name with a random quality
         {
             Random rnd = new Random();
             return _qualityofequipment[rnd.Next(0, _qualityofequipment.Count)] + " " + armortype;
         }
 
-        public static IEquipment RandomEquipment()
+        public static IEquipment RandomEquipment() //Generates a random equipment
         {
             Random rnd = new Random();
 

@@ -76,9 +76,6 @@ namespace DungeonMaster.Events
         {
             HolderClass.Instance.SkipNextPrintOut = true;
             Labyrinth.SetRoomToSolved();
-            HolderClass.Instance.Save();
-
-
         }
 
         private void ImproveStat()

@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace DungeonMaster.Equipment
 {
+    /// <summary>
+    /// Interface for all equipment types.
+    /// </summary>
     public interface IEquipment
     {
         string Name { get; set; }

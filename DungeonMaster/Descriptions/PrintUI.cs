@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -39,6 +40,30 @@ namespace DungeonMaster.Descriptions
         
         public static List<string> CombatLog { get; set; } = new List<string>();
 
+        private static string KeyInfo(ConsoleKeyInfo key)
+        {
+            switch (key.Key)
+            {
+                case ConsoleKey.UpArrow:
+                    return "2";
+                case ConsoleKey.DownArrow:
+                    return "4";
+                case ConsoleKey.LeftArrow:
+                    return "1";
+                case ConsoleKey.RightArrow:
+                    return "3";
+                case ConsoleKey.D1:
+                    return "1";
+                case ConsoleKey.D2:
+                    return "2";
+                case ConsoleKey.D3:
+                    return "3";
+                case ConsoleKey.D4:
+                    return "4";
+                default:
+                    return key.KeyChar.ToString();
+            }
+        }
 
         private static void TryChoice()
         {
@@ -52,7 +77,8 @@ namespace DungeonMaster.Descriptions
 
             if (HolderClass.Instance.Options.Count == 0) return;
             Console.SetCursorPosition(CursorX, CursorY);
-            string input = Console.ReadKey(true).KeyChar.ToString();
+            string input = KeyInfo(Console.ReadKey(true));
+            //string input = Console.ReadKey(true).KeyChar.ToString();
             if (HolderClass.Instance.IsMoving)
             {
                 if (Regex.IsMatch(input, $"^[1-{HolderClass.Instance.DirectionalOptions.Count}]$"))

@@ -50,6 +50,8 @@ namespace DungeonMaster.Items
         public void Use()
         {
             Effect?.Invoke();
+            HolderClass.Instance.IsPlayerTurn = !HolderClass.Instance.IsPlayerTurn;
+            RemoveItem();
         }
 
         private void AddName()
@@ -64,6 +66,8 @@ namespace DungeonMaster.Items
             };
         }
 
+
+
         private void AddEffect()
         {
             Effect = TypeOfEffect switch
@@ -75,6 +79,11 @@ namespace DungeonMaster.Items
                 _ => DamageToMonsters,
             };
 
+        }
+
+        public void RemoveItem()
+        {
+            HolderClass.Instance.ChosenClass.Bag.Remove(this);
         }
 
         private void AddDescription()

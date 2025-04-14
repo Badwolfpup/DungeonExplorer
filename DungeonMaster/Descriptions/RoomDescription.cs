@@ -35,7 +35,7 @@ namespace DungeonMaster.Descriptions
             "A vast, echoing hall with a mysterious, haunting aura.",
             "A dilapidated room with crumbling stone and lingering mist.",
             "A somber, narrow corridor leading into the unknown."
-        };
+        }; //List of strings that is used to randomize the roomdescription. The first part of the description is randomized from this list.
 
         // 2. Describes the walls, floor, and ceiling.
         public static readonly List<string> StructuralDetails = new List<string>
@@ -60,10 +60,10 @@ namespace DungeonMaster.Descriptions
             "The walls bear the scars of past sieges, with a floor of cold, hard stone and a ceiling that echoes the passage of time.",
             "Smooth, worn stone walls, a cracked tiled floor, and a vaulted ceiling create an atmosphere of decay.",
             "The surfaces are rugged and raw: stone walls, a dust-covered floor, and a ceiling shrouded in darkness."
-        };
+        }; //List of strings that is used to randomize the roomdescription. The second part of the description is randomized from this list.
 
         // 3. Describes the feeling or atmosphere.
-        public static readonly List<string> Atmospheres = new List<string>
+        public static readonly List<string> Atmospheres = new List<string> 
         {
             "An overwhelming sense of dread permeates the air.",
             "A feeling of solitude and melancholy fills your heart.",
@@ -85,7 +85,7 @@ namespace DungeonMaster.Descriptions
             "You are overcome with an uncanny sense of timelessness.",
             "A chill of apprehension makes you wary of every shadow.",
             "An inexplicable tension leaves you breathless and alert."
-        };
+        }; //List of strings that is used to randomize the roomdescription. The third part of the description is randomized from this list.
 
         // 4. Describes what you see in the room.
         public static readonly List<string> VisualDetails = new List<string>
@@ -110,7 +110,7 @@ namespace DungeonMaster.Descriptions
             "A pool of stagnant water mirrors the grim visage of the chamber.",
             "The remains of a once grand altar lie in ruin, draped in shadows.",
             "Gleaming relics and scattered trinkets hint at a storied past."
-        };
+        }; //List of strings that is used to randomize the roomdescription. The fourth part of the description is randomized from this list.
 
         private static readonly Random rng = new Random();
 
@@ -124,7 +124,7 @@ namespace DungeonMaster.Descriptions
             finalDesc = new List<string>();
             SplitText(desc);
 
-        }
+        } //This method generates a random room description by selecting random elements from the lists and combining them into a single string. It then splits the string into a list of word.
 
         private static void SplitText(List<string> desc)
         {
@@ -147,9 +147,36 @@ namespace DungeonMaster.Descriptions
 
             }
             finalDesc.Add(currentLine);
+        } //The method recombines the words into lines of 59 characters or less. It adds each line to the finalDesc list.
+
+        public static List<string> AddSplitText(List<string> inputlist, string text) //Similar to SplitText but it adds text, that are to be split into parts of 59 characters or less, and then adds it to a passed list which isd then returned.
+        {
+            string currentLine = "";
+            int lineLength = 59;
+            List<string> desc = text.Split(" ").ToList();
+            while (desc.Count > 0)
+            {
+                if (desc[0].Length + 1 < lineLength)
+                {
+                    currentLine += $"{(lineLength != 59 ? " " : "")}{desc[0]}";
+                    lineLength -= desc[0].Length + 1;
+                    desc.RemoveAt(0);
+                }
+                else
+                {
+                    inputlist.Add(currentLine);
+                    currentLine = "";
+                    lineLength = 59;
+                }
+
+            }
+            inputlist.Add(currentLine);
+            return inputlist;
         }
 
-        public static void AddEventText(string text, bool lastline)
+
+
+        public static void AddEventText(string text, bool lastline) //This method adds a text to the finalDesc list. If the text is longer than 59 characters, it splits it into parts of 59 characters or less. If lastline is true, it adds an empty line before the text.
         {
             if (text == null) return;
             if (lastline) finalDesc.Add("");
@@ -159,7 +186,7 @@ namespace DungeonMaster.Descriptions
 
         public static List<string> GetRandomRoomDescription() => finalDesc;
 
-        public static void UpdateMonsterName(string name, string type)
+        public static void UpdateMonsterName(string name, string type) //This method updates the name of the monster in the finalDesc list. It replaces the last line with a new description of the monster.
         {
             if (name == null || type == null) return;
 
@@ -171,7 +198,7 @@ namespace DungeonMaster.Descriptions
             
         }
 
-        public static List<string> RoomLegend()
+        public static List<string> RoomLegend() //This method returns a list of strings that describes the legend of the room. It is used to display the legend of the room in the UI.
         {
             return new List<string> { 
                 "A - Altar",

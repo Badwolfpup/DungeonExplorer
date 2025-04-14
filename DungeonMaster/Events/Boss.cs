@@ -12,56 +12,41 @@ namespace DungeonMaster.Events
 {
     public class Boss : IEvent
     {
+        Battle battle;
         public Boss()
         {
-            RoomDescription.GenerateRandomRoomDescription();
-            RoomDescription.AddEventText(EventText(), true);
-            Description = RoomDescription.GetRandomRoomDescription();
-            HolderClass.Instance.IsBossFight = true;
+            battle = new Battle(true); //Creates a new battle with the boss constructor
+            Description = battle.Description; //Gets the description from the Battle object
         }
 
 
-        private string EventText()
-        {
-            return $" A powerful aura emanates from {RandomizeBoss()}. He looks at you with a menacing look. He looks like he alot tougher than the other monsters.";
-        }
-
-        private string RandomizeBoss()
-        {
-            Random r = new Random();
-            string name = MonsterNames.RandomBossName();
-            //string monstername = MonsterNames.RandomMonsterFullName(name);
-            HolderClass.Instance.Monster = new Monster(name, "", HolderClass.Instance.FloorLevel);
-            var monster = HolderClass.Instance.Monster as Monster;
-            if (monster != null) monster.BossStats();
-            HolderClass.Instance.HasMonster = true;
-            return name;
-        }
-
-        public string Type => "Boss";
+        public string Type => "Boss"; // Type of event
         public List<string> Description { get; set; }
 
-        public void BeforeNextRoom()
+        public void BeforeNextRoom() // The method that is called before moving on to the next room
         {
-            Labyrinth.SetRoomToSolved();
-            HolderClass.Instance.SkipNextPrintOut = true;
-            HolderClass.Instance.IsBossFight = false;
-            if (HolderClass.Instance.ChosenClass.Health > 0) UpdateEventText();
-            HolderClass.Instance.Save();
-
+            if (HolderClass.Instance.IsBossDead)
+            {
+                Labyrinth.SetRoomToSolved();
+                HolderClass.Instance.SkipNextPrintOut = true;
+                HolderClass.Instance.IsBossFight = false;
+                HolderClass.Instance.IsBossDead = true;
+                if (HolderClass.Instance.ChosenClass.Health > 0) UpdateEventText();
+            }
         }
 
-        public void UpdateEventText()
+        public void UpdateEventText() //This method updates the event portion of the room description 
         {
             int index = Description.IndexOf("");
             Description.RemoveRange(index + 1, Description.Count - index - 1);
             Description.Add($"You see the corpse of the {HolderClass.Instance.Monster.Name} lying on the floor");
         }
 
-        public void Run()
+        public void Run() //Executes the event
         {
-            Battle battle = new Battle(true);
+            HolderClass.Instance.HasEnteredBossRoom = true;
             battle.Run();
+            BeforeNextRoom();
         }
 
         public void SetDefaultOptions()

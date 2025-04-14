@@ -1,6 +1,9 @@
-﻿Designa 10+ events
-Gör en legend för minimapen
+﻿Adda text till om man mäter ett mob vid treasuyre, inte bara namnet i loggen
+Välja att yeeta item om bag full
+
+Ta bort mana
 Balansera combat
 Skapa klasser + skills
 Skapa en infosidas
 
+kolla om skills sparars vid     ReferenceLoopHandling = ReferenceLoopHandling.Ignore

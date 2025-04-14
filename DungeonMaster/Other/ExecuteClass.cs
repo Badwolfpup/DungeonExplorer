@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace DungeonMaster.Other
 {
+    /// <summary>
+    /// Handles the execution of all actions and prints the UI
+    /// </summary>
     public static class ExecuteClass
     {
         static public void Execute(Action a)

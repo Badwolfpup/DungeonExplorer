@@ -9,24 +9,17 @@ using DungeonMaster.Classes;
 
 namespace DungeonMaster.Events
 {
+    /// <summary>
+    /// Interface for all events.
+    /// </summary>
     public interface IEvent
     {
-        //List<KeyValuePair<string, Action>> Options { get; set; }
-        //IEvent CurrentEvent { get; set; }
-        //IBaseClass ChosenClass { get; set; }
+        string Type { get; } // Type of event
+        List<string> Description { get; set; } // Description of the event
+        void SetUIState(); // Set the UI state for the event - which setting to be toggled
+        void SetDefaultOptions(); // Set the default options for the event
+        void Run(); // The method the executes the event
+        void BeforeNextRoom(); // The method that is called before moving on to the next room
 
-
-        //void TryChoice();
-
-        //void AddNewLine(int x);
-
-        //void PrintOptions();
-        string Type { get; }
-        List<string> Description { get; set; }
-        void SetUIState();
-        void SetDefaultOptions();
-        void Run();
-        void BeforeNextRoom();
-        
     }
 }
