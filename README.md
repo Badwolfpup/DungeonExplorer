@@ -21,16 +21,16 @@ A console-based RPG dungeon crawler built in C# with a focus on object-oriented 
 
 ```
 DungeonMaster/
-â”œâ”€â”€ Classes/              # Character classes (BaseClass, Warrior, Mage, Ranger, Monster)
-â”œâ”€â”€ Skills/               # Skill system with melee specializations
-â”œâ”€â”€ Equipment/            # IEquipment interface, Head, Weapon, Chest, GenerateEquipment
-â”œâ”€â”€ Events/               # 12 event types implementing IEvent
-â”œâ”€â”€ Items/                # Randomized item generation
-â”œâ”€â”€ Descriptions/         # Room descriptions, monster/character names, UI printing
-â”œâ”€â”€ FormatClass/          # Console text color formatting
-â”œâ”€â”€ Other/                # Labyrinth, Room, SaveLoad, ExecuteClass, SetUIState
-â”œâ”€â”€ HolderClass.cs        # Game state container
-â””â”€â”€ Program.cs            # Entry point
+├── Classes/              # Character classes (BaseClass, Warrior, Mage, Ranger, Monster)
+├── Skills/               # Skill system with melee specializations
+├── Equipment/            # IEquipment interface, Head, Weapon, Chest, GenerateEquipment
+├── Events/               # 12 event types implementing IEvent
+├── Items/                # Randomized item generation
+├── Descriptions/         # Room descriptions, monster/character names, UI printing
+├── FormatClass/          # Console text color formatting
+├── Other/                # Labyrinth, Room, SaveLoad, ExecuteClass, SetUIState
+├── HolderClass.cs        # Game state container
+└── Program.cs            # Entry point
 ```
 
 ## How to Run
